@@ -37,17 +37,41 @@ export default function SignupPage() {
 
   async function onSubmit(data: SignupFormData) {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    
+    try {
+      const response = await fetch('/api/deafauth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    toast({
-      title: 'Account Created!',
-      description: `Welcome, ${data.name}! You can now log in.`,
-      variant: 'default',
-    });
-    // In a real app, you might auto-login or redirect to login
-    form.reset();
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'An unknown error occurred.');
+      }
+
+      toast({
+        title: 'Account Created!',
+        description: `Welcome, ${data.name}! You can now log in.`,
+        variant: 'default',
+      });
+      // In a real app, you might auto-login or redirect to login
+      form.reset();
+
+    } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : 'Sign up failed. Please try again.';
+       toast({
+        title: 'Sign Up Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+       if (errorMessage.includes('email already exists')) {
+        form.setError("email", { type: "manual", message: "This email is already taken." });
+       }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

@@ -168,10 +168,12 @@ export default function AslVerificationPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'An API error occurred during verification.');
+        const errorMessage = result.message || (result.errors ? JSON.stringify(result.errors) : 'An API error occurred during verification.');
+        throw new Error(errorMessage);
       }
 
-      if (result.isAuthentic) {
+      // Overall success requires both authentic signs and a detected face.
+      if (result.isAuthentic && result.faceDetected) {
         setFeedback({ type: 'success', title: 'Verification Successful!', message: result.message });
       } else {
         setFeedback({ type: 'error', title: 'Verification Failed', message: result.message });
@@ -188,7 +190,7 @@ export default function AslVerificationPage() {
   return (
     <AuthFormContainer
       title="ASL Video Verification"
-      description={`Record a video of yourself signing: "${expectedSignsPhrase}". Ensure you are in a clear and well-lit environment.`}
+      description={`Record a video of yourself signing: "${expectedSignsPhrase}". Ensure your face is clear and you are in a well-lit environment.`}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 flex flex-col items-center justify-center min-h-[300px] space-y-4">

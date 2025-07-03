@@ -8,26 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import AuthFormContainer from '@/components/AuthFormContainer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { verifyAslVideo, type VerifyAslVideoInput, type VerifyAslVideoOutput } from '@/ai/flows/verify-asl-video';
 import { Loader2, Video, Upload, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
-
-// This server action could also be in a separate actions.ts file
-async function handleVerifyAslServerAction(data: VerifyAslVideoInput): Promise<VerifyAslVideoOutput> {
-  'use server';
-  try {
-    // The expectedSigns should ideally be dynamic or securely fetched,
-    // for this demo, it's hardcoded here but also shown to the user.
-    const result = await verifyAslVideo({
-      ...data,
-      expectedSigns: ["HELLO", "WORLD"] // Match what user is told to sign
-    });
-    return result;
-  } catch (error) {
-    console.error("ASL Verification Error:", error);
-    return { isAuthentic: false, message: "An unexpected error occurred during verification." };
-  }
-}
-
 
 export default function AslVerificationPage() {
   const { toast } = useToast();
@@ -83,7 +64,23 @@ export default function AslVerificationPage() {
 
     try {
       const videoDataUri = await fileToDataUri(videoFile);
-      const result = await handleVerifyAslServerAction({ videoDataUri, expectedSigns: expectedSignsPhrase.split(" ") });
+      
+      const response = await fetch('/api/deafauth/verify-asl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoDataUri,
+          expectedSigns: expectedSignsPhrase.split(' '),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'An API error occurred during verification.');
+      }
 
       if (result.isAuthentic) {
         setFeedback({ type: 'success', title: 'Verification Successful!', message: result.message });

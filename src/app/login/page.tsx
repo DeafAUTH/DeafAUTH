@@ -34,26 +34,40 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
 
-    if (data.email === 'test@example.com' && data.password === 'password123') {
+    try {
+      const response = await fetch('/api/deafauth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Use message from API response if available
+        throw new Error(result.message || 'An unknown error occurred.');
+      }
+
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
         variant: 'default',
       });
-      // In a real app, redirect or update auth state here
-      // form.reset();
-    } else {
+      // In a real app, you would handle redirection or state update here
+      // e.g. router.push('/dashboard')
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
       toast({
         title: 'Login Failed',
-        description: 'Invalid email or password. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
-      form.setError("email", { type: "manual", message: " "}); // Clear previous errors if any better way
-      form.setError("password", { type: "manual", message: "Invalid credentials"});
+      // Display error on the form
+      form.setError("password", { type: "manual", message: "Invalid email or password." });
+    } finally {
+      setIsLoading(false);
     }
   }
 

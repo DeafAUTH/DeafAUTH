@@ -72,19 +72,6 @@ gcloud run deploy deaf-auth-service \
     --max-instances 10 \
     --project $PROJECT_ID
 
-# Set up Cloud SQL (Supabase)
-echo "Setting up database..."
-gcloud sql instances create deaf-auth-db \
-    --database-version=POSTGRES_14 \
-    --tier=db-g1-small \
-    --region=$REGION \
-    --storage-size=10GB \
-    --project $PROJECT_ID
-
-# Create database
-echo "Creating database..."
-gcloud sql databases create deaf_auth_db --instance=deaf-auth-db --project $PROJECT_ID
-
 # Set up monitoring
 echo "Setting up monitoring..."
 gcloud monitoring workspaces create \

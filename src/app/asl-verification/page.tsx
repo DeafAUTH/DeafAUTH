@@ -174,7 +174,13 @@ export default function AslVerificationPage() {
 
       // Overall success requires both authentic signs and a detected face.
       if (result.isAuthentic && result.faceDetected) {
-        setFeedback({ type: 'success', title: 'Verification Successful!', message: result.message });
+        // If this window was opened by another, post a message and close.
+        if (window.opener) {
+            window.opener.postMessage({ type: 'DEAF_AUTH_SUCCESS', user: result }, '*');
+            window.close();
+        } else {
+             setFeedback({ type: 'success', title: 'Verification Successful!', message: result.message });
+        }
       } else {
         setFeedback({ type: 'error', title: 'Verification Failed', message: result.message });
       }

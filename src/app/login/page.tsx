@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -17,12 +17,36 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AuthFormContainer from '@/components/AuthFormContainer';
 import { LoginSchema, type LoginFormData } from '@/lib/auth-schemas';
-import { Eye, EyeOff, Lock, Mail, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Loader2, Video } from 'lucide-react';
 
 export default function LoginPage() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+
+  useEffect(() => {
+    const handleAuthMessage = (event: MessageEvent) => {
+      // Basic security: check the origin if possible
+      // if (event.origin !== "http://your-allowed-origin.com") return;
+      
+      if (event.data && event.data.type === 'DEAF_AUTH_SUCCESS') {
+        console.log('User authenticated via popup:', event.data.user);
+        toast({
+          title: 'ASL Verification Successful!',
+          description: 'You have been authenticated.',
+          variant: 'default',
+        });
+        // Here you would typically set user state, redirect, etc.
+      }
+    };
+
+    window.addEventListener('message', handleAuthMessage);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('message', handleAuthMessage);
+    };
+  }, [toast]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
@@ -69,6 +93,18 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+  
+  const openAuthPopup = () => {
+      const width = 600;
+      const height = 800;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      window.open(
+          '/asl-verification',
+          'DeafAuth',
+          `width=${width},height=${height},left=${left},top=${top}`
+      );
   }
 
   return (
@@ -132,16 +168,25 @@ export default function LoginPage() {
           </Button>
         </form>
       </Form>
+
+       <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+          </div>
+      </div>
+
+      <Button variant="outline" className="w-full" onClick={openAuthPopup}>
+        <Video className="mr-2 h-5 w-5"/>
+        ASL Video Verification
+      </Button>
+
       <div className="mt-6 text-center text-sm">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="font-medium text-primary hover:underline">
           Sign up
-        </Link>
-      </div>
-      <div className="mt-2 text-center text-sm">
-        Or try{' '}
-        <Link href="/asl-verification" className="font-medium text-primary hover:underline">
-          ASL Video Verification
         </Link>
       </div>
     </AuthFormContainer>

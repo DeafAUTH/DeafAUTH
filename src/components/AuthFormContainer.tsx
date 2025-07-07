@@ -11,7 +11,7 @@ interface AuthFormContainerProps {
 
 const AuthFormContainer: React.FC<AuthFormContainerProps> = ({ title, description, children, footer }) => {
   return (
-    <div className="flex flex-1 items-center justify-center p-4 bg-gradient-to-br from-background to-secondary">
+    <div className="flex flex-1 items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/20">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">

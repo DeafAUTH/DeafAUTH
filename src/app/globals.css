@@ -8,33 +8,33 @@ body {
 
 @layer base {
   :root {
-    --background: 200 100% 97%; /* Very Light Blue */
-    --foreground: 215 28% 17%; /* Dark Grayish Blue */
+    --background: 220 14% 96%; /* Light Gray (#F3F4F6) */
+    --foreground: 222 47% 11%; /* Dark Blue for text */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 215 28% 17%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 180 100% 25.1%; /* Teal (#008080) */
-    --primary-foreground: 180 20% 95%; /* Light color for text on primary */
+    --primary: 222 83% 53%; /* Blue (#2563EB) */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 200 60% 90%; /* Lighter Blue */
-    --secondary-foreground: 180 100% 20.1%; /* Darker Teal text on Lighter Blue */
+    --secondary: 255 91% 66%; /* Purple (#8B5CF6) */
+    --secondary-foreground: 255 100% 98%;
 
-    --muted: 200 50% 94%; /* Muted Light Blue */
-    --muted-foreground: 215 25% 55%; /* Muted Grayish Blue */
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 180 80% 35%; /* Slightly Lighter/Brighter Teal for hover/focus emphasis */
-    --accent-foreground: 180 20% 95%;
+    --accent: 160 82% 42%; /* Green (#10B981) */
+    --accent-foreground: 160 100% 98%;
 
-    --destructive: 0 70% 50%; /* Red for errors */
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 200 40% 88%; /* Light Blue Border */
-    --input: 200 60% 95%;   /* Very Light Blue Input BG */
-    --ring: 180 100% 30%;   /* Teal Focus Ring */
+    --border: 220 13% 88%;
+    --input: 220 13% 91%;
+    --ring: 222 83% 53%;
     
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -61,19 +61,19 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 180 100% 35%; /* Darker Teal for Primary in Dark Mode */
-    --primary-foreground: 180 20% 95%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 222 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 255 91% 66%;
+    --secondary-foreground: 255 100% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 180 100% 45%; /* Brighter Teal for Accent in Dark Mode */
-    --accent-foreground: 180 20% 95%;
+    --accent: 160 82% 42%;
+    --accent-foreground: 160 100% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 180 100% 40%;
+    --ring: 222 83% 53%;
     
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;

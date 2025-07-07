@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-br from-background to-secondary min-h-screen">
+    <div className="flex flex-1 flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-br from-background to-secondary/20 min-h-screen">
       <div className="text-center mb-12">
         <Logo size="text-5xl sm:text-6xl" />
         <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">

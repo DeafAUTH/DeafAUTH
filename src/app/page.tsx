@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
-import { LogIn, UserPlus, Video } from 'lucide-react';
+import { LogIn, UserPlus, Video, Link as LinkIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function HomePage() {
   return (
@@ -12,6 +13,25 @@ export default function HomePage() {
         <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
           Welcome to deafAuth, providing secure and accessible authentication solutions, including innovative ASL video verification.
         </p>
+      </div>
+
+      <div className="w-full max-w-4xl mb-8">
+        <Alert>
+          <LinkIcon className="h-4 w-4" />
+          <AlertTitle>Connect with PinkSync!</AlertTitle>
+          <AlertDescription>
+            DeafAuth is part of the PinkSync ecosystem.{' '}
+            <a
+              href="https://register.pinksync.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              Register or connect your account
+            </a>{' '}
+            to unlock more features.
+          </AlertDescription>
+        </Alert>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 w-full max-w-4xl">

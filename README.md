@@ -64,6 +64,8 @@ The project includes automated CI/CD pipelines that run on every push and pull r
 
 All checks must pass before merging code.
 
+📖 **[View Complete DevOps Documentation](docs/DEVOPS.md)**
+
 ## Example Usage
 
 ```typescript

@@ -11,8 +11,60 @@ A script-first, modular SDK for building Deaf-first authentication experiences.
 ## Installation
 
 ```bash
-npm install @mbtq/deafauth-sdk
+npm install
 ```
+
+## Environment Setup
+
+1. Copy the `.env.example` file to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in your Supabase credentials in the `.env` file:
+   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+## Scripts
+
+- `npm run dev`: Start the development server.
+- `npm run build`: Build the production application.
+- `npm run start`: Start the production server.
+- `npm run lint`: Run ESLint to check code quality.
+- `npm test`: Run the test suite.
+- `npm run test:watch`: Run tests in watch mode.
+- `npm run test:coverage`: Run tests with coverage report.
+
+## Development
+
+### Running Tests
+
+The project uses Jest and React Testing Library for testing. To run tests:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Continuous Integration
+
+The project includes automated CI/CD pipelines that run on every push and pull request:
+
+- **Lint Check**: Ensures code quality with ESLint
+- **Tests**: Runs all unit tests
+- **Build**: Validates the application builds successfully
+- **Type Check**: Validates TypeScript types
+- **Docker Build**: Tests Docker container build
+
+All checks must pass before merging code.
+
+📖 **[View Complete DevOps Documentation](docs/DEVOPS.md)**
 
 ## Example Usage
 
@@ -37,10 +89,3 @@ async function authenticate() {
   }
 }
 ```
-
-## Scripts
-
-- `npm run build`: Compile TypeScript to JavaScript.
-- `npm run dev`: Watch for changes and recompile.
-- `npm run test`: Run tests.
-- `npm run deploy`: Publish the package to npm.

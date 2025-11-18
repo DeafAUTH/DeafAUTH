@@ -1,0 +1,356 @@
+import React, { useState } from ‘react’;
+import { ChevronRight, Vote, Eye, Filter, Calendar, DollarSign, Users, TrendingUp, CheckCircle, Clock, AlertCircle } from ‘lucide-react’;
+
+const MBTQProposalShowcase = () => {
+const [selectedProposal, setSelectedProposal] = useState(null);
+const [votingOpen, setVotingOpen] = useState(false);
+const [filters, setFilters] = useState({
+stage: ‘all’,
+funding: ‘all’,
+sector: ‘all’
+});
+
+// Mock data representing proposals from 360 Business Magician
+const proposals = [
+{
+id: ‘001’,
+title: ‘DeafTech Wearables’,
+creator: ‘Sarah Chen’,
+stage: ‘milestone-2’,
+fundingNeeded: 250000,
+sector: ‘hardware’,
+summary: ‘Smart wearables designed for Deaf community with haptic feedback and visual alerts’,
+milestones: [
+{ id: 1, name: ‘Market Research’, status: ‘completed’, progress: 100 },
+{ id: 2, name: ‘Prototype Development’, status: ‘active’, progress: 65 },
+{ id: 3, name: ‘Beta Testing’, status: ‘pending’, progress: 0 },
+{ id: 4, name: ‘Production Planning’, status: ‘pending’, progress: 0 }
+],
+metrics: {
+marketSize: ‘$2.3B’,
+roi: ‘340%’,
+timeToMarket: ‘18 months’,
+teamSize: 12
+},
+votes: { for: 847, against: 23, abstain: 56 },
+deafAuthScore: 95,
+fibonroseRating: ‘A+’,
+lastUpdated: ‘2025-07-09’
+},
+{
+id: ‘002’,
+title: ‘ASL Learning Platform’,
+creator: ‘Marcus Rodriguez’,
+stage: ‘milestone-1’,
+fundingNeeded: 150000,
+sector: ‘education’,
+summary: ‘AI-powered ASL learning platform with real-time gesture recognition’,
+milestones: [
+{ id: 1, name: ‘AI Model Training’, status: ‘active’, progress: 85 },
+{ id: 2, name: ‘Platform Development’, status: ‘pending’, progress: 0 },
+{ id: 3, name: ‘Content Creation’, status: ‘pending’, progress: 0 },
+{ id: 4, name: ‘Launch & Marketing’, status: ‘pending’, progress: 0 }
+],
+metrics: {
+marketSize: ‘$1.8B’,
+roi: ‘280%’,
+timeToMarket: ‘12 months’,
+teamSize: 8
+},
+votes: { for: 623, against: 45, abstain: 32 },
+deafAuthScore: 92,
+fibonroseRating: ‘A’,
+lastUpdated: ‘2025-07-08’
+}
+];
+
+const getStageColor = (stage) => {
+const colors = {
+‘milestone-1’: ‘bg-blue-100 text-blue-800’,
+‘milestone-2’: ‘bg-purple-100 text-purple-800’,
+‘milestone-3’: ‘bg-green-100 text-green-800’,
+‘milestone-4’: ‘bg-gray-100 text-gray-800’
+};
+return colors[stage] || ‘bg-gray-100 text-gray-800’;
+};
+
+const getStatusIcon = (status) => {
+switch(status) {
+case ‘completed’: return <CheckCircle className="w-4 h-4 text-green-600" />;
+case ‘active’: return <Clock className="w-4 h-4 text-blue-600" />;
+case ‘pending’: return <AlertCircle className="w-4 h-4 text-gray-400" />;
+default: return <AlertCircle className="w-4 h-4 text-gray-400" />;
+}
+};
+
+const filteredProposals = proposals.filter(proposal => {
+return (filters.stage === ‘all’ || proposal.stage === filters.stage) &&
+(filters.funding === ‘all’ ||
+(filters.funding === ‘under-200k’ && proposal.fundingNeeded < 200000) ||
+(filters.funding === ‘over-200k’ && proposal.fundingNeeded >= 200000)) &&
+(filters.sector === ‘all’ || proposal.sector === filters.sector);
+});
+
+const ProposalCard = ({ proposal }) => (
+<div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+<div className="p-6">
+<div className="flex justify-between items-start mb-4">
+<div>
+<h3 className="text-xl font-bold text-gray-900 mb-2">{proposal.title}</h3>
+<p className="text-gray-600 mb-2">by {proposal.creator}</p>
+<span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStageColor(proposal.stage)}`}>
+{proposal.stage.replace(’-’, ’ ’).replace(/\b\w/g, l => l.toUpperCase())}
+</span>
+</div>
+<div className="text-right">
+<div className="text-2xl font-bold text-green-600">${(proposal.fundingNeeded / 1000).toFixed(0)}K</div>
+<div className="text-sm text-gray-500">Funding Needed</div>
+</div>
+</div>
+
+```
+    <p className="text-gray-700 mb-4">{proposal.summary}</p>
+
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="flex items-center space-x-2">
+        <TrendingUp className="w-4 h-4 text-green-600" />
+        <span className="text-sm text-gray-600">ROI: {proposal.metrics.roi}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Calendar className="w-4 h-4 text-blue-600" />
+        <span className="text-sm text-gray-600">TTM: {proposal.metrics.timeToMarket}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Users className="w-4 h-4 text-purple-600" />
+        <span className="text-sm text-gray-600">Team: {proposal.metrics.teamSize}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <DollarSign className="w-4 h-4 text-green-600" />
+        <span className="text-sm text-gray-600">Market: {proposal.metrics.marketSize}</span>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center">
+      <div className="flex space-x-4">
+        <div className="text-sm">
+          <span className="text-gray-600">DeafAUTH:</span>
+          <span className="font-semibold text-blue-600 ml-1">{proposal.deafAuthScore}%</span>
+        </div>
+        <div className="text-sm">
+          <span className="text-gray-600">Fibonrose:</span>
+          <span className="font-semibold text-purple-600 ml-1">{proposal.fibonroseRating}</span>
+        </div>
+      </div>
+      <button
+        onClick={() => setSelectedProposal(proposal)}
+        className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <Eye className="w-4 h-4" />
+        <span>View Details</span>
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+);
+
+const ProposalDetails = ({ proposal }) => (
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+<div className="p-6">
+<div className="flex justify-between items-start mb-6">
+<div>
+<h2 className="text-2xl font-bold text-gray-900">{proposal.title}</h2>
+<p className="text-gray-600">Created by {proposal.creator}</p>
+</div>
+<button
+onClick={() => setSelectedProposal(null)}
+className=“text-gray-500 hover:text-gray-700”
+>
+✕
+</button>
+</div>
+
+```
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Project Milestones</h3>
+          <div className="space-y-3">
+            {proposal.milestones.map((milestone) => (
+              <div key={milestone.id} className="flex items-center space-x-3">
+                {getStatusIcon(milestone.status)}
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{milestone.name}</span>
+                    <span className="text-xs text-gray-500">{milestone.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${milestone.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Voting Status</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-green-600">For</span>
+              <span className="font-semibold">{proposal.votes.for}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-red-600">Against</span>
+              <span className="font-semibold">{proposal.votes.against}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Abstain</span>
+              <span className="font-semibold">{proposal.votes.abstain}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
+              <div
+                className="bg-green-600 h-3 rounded-full"
+                style={{ width: `${(proposal.votes.for / (proposal.votes.for + proposal.votes.against + proposal.votes.abstain)) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex space-x-4">
+        <button
+          onClick={() => setVotingOpen(true)}
+          className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <Vote className="w-5 h-5" />
+          <span>Cast Vote</span>
+        </button>
+        <button className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
+          <span>Request More Info</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+);
+
+return (
+<div className="min-h-screen bg-gray-50">
+{/* Header */}
+<div className="bg-white shadow-sm border-b">
+<div className="max-w-7xl mx-auto px-4 py-6">
+<div className="flex justify-between items-center">
+<div>
+<h1 className="text-3xl font-bold text-gray-900">MBTQ Proposal Showcase</h1>
+<p className="text-gray-600 mt-2">360 Business Magician Generated Proposals</p>
+</div>
+<div className="flex items-center space-x-4">
+<div className="text-sm text-gray-600">
+<span className="font-medium">DeafAUTH Validated</span> •
+<span className="font-medium text-purple-600 ml-1">Fibonrose Scored</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+```
+  {/* Filters */}
+  <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Stage</label>
+          <select
+            value={filters.stage}
+            onChange={(e) => setFilters({...filters, stage: e.target.value})}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          >
+            <option value="all">All Stages</option>
+            <option value="milestone-1">Milestone 1</option>
+            <option value="milestone-2">Milestone 2</option>
+            <option value="milestone-3">Milestone 3</option>
+            <option value="milestone-4">Milestone 4</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Funding</label>
+          <select
+            value={filters.funding}
+            onChange={(e) => setFilters({...filters, funding: e.target.value})}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          >
+            <option value="all">All Funding</option>
+            <option value="under-200k">Under $200K</option>
+            <option value="over-200k">Over $200K</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Sector</label>
+          <select
+            value={filters.sector}
+            onChange={(e) => setFilters({...filters, sector: e.target.value})}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          >
+            <option value="all">All Sectors</option>
+            <option value="hardware">Hardware</option>
+            <option value="education">Education</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="fintech">FinTech</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {/* Proposals Grid */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {filteredProposals.map((proposal) => (
+        <ProposalCard key={proposal.id} proposal={proposal} />
+      ))}
+    </div>
+  </div>
+
+  {/* Proposal Details Modal */}
+  {selectedProposal && <ProposalDetails proposal={selectedProposal} />}
+
+  {/* Voting Modal */}
+  {votingOpen && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Cast Your Vote</h3>
+          <div className="space-y-3">
+            <button className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+              Vote FOR
+            </button>
+            <button className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors">
+              Vote AGAINST
+            </button>
+            <button className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors">
+              ABSTAIN
+            </button>
+          </div>
+          <button
+            onClick={() => setVotingOpen(false)}
+            className="w-full mt-4 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+};
+
+export default MBTQProposalShowcase;

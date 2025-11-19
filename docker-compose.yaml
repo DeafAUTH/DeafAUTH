@@ -1,0 +1,19 @@
+deafauth:
+    build:
+      context: ./deafauth
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - BASE_URL=${BASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - CLIENTS=${CLIENTS}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - SCOPES=${SCOPES}
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - webnet

@@ -1,46 +1,48 @@
-# Stage 1: Build the application
-FROM node:20-alpine AS builder
+# ./deafauth/Dockerfile
+# 1) Builder stage: install deps and compile TypeScript
+FROM node:18-alpine AS builder
 
-# Set working directory
+# Required build dependencies for some native modules
+RUN apk add --no-cache python3 make g++ git
+
 WORKDIR /app
 
-# Install dependencies
-COPY package.json ./
-RUN npm install
+# Copy package manifests first to leverage Docker layer caching
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 
-# Copy source code
+# Install deps (prefer npm ci if package-lock.json present)
+# Adjust to yarn/pnpm if you use them
+RUN if [ -f package-lock.json ]; then npm ci --production=false; else npm install; fi
+
+# Copy source and compile
+COPY tsconfig.json ./
+COPY src ./src
+# Any other files needed at build time (e.g., scripts, migrations)
 COPY . .
 
-# Build the Next.js app
+# Build step - assumes "build" script in package.json runs tsc (or equivalent)
 RUN npm run build
 
-# Stage 2: Production image
-FROM node:20-alpine AS runner
+# 2) Production stage: slim runtime image
+FROM node:18-alpine AS runtime
 
 WORKDIR /app
 
-# Set production environment
+# Only copy package.json and production deps from the builder stage
+COPY package.json package-lock.json* ./
+# Install only production dependencies
+RUN if [ -f package-lock.json ]; then npm ci --production=true; else npm install --only=production; fi
+
+# Copy built artifacts from builder stage
+COPY --from=builder /app/dist ./dist
+# If you need static assets, copy them too
+# COPY --from=builder /app/public ./public
+
+# Environment defaults (can be overridden by docker-compose / env file)
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT=3000
 
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the standalone output from the builder stage.
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Set the user to the non-root user
-USER nextjs
-
-# Expose the port the app runs on
 EXPOSE 3000
 
-# Set the port environment variable
-ENV PORT 3000
-
-# Start the app
-CMD ["node", "server.js"]
+# Start command - adjust the path if your build outputs a different entrypoint
+CMD ["node", "dist/index.js"]

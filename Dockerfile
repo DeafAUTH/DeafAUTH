@@ -18,7 +18,8 @@ RUN if [ -f package-lock.json ]; then npm ci --production=false; else npm instal
 COPY tsconfig.json ./
 COPY src ./src
 # Any other files needed at build time (e.g., scripts, migrations)
-COPY . .
+# COPY scripts ./scripts
+# COPY migrations ./migrations
 
 # Build step - assumes "build" script in package.json runs tsc (or equivalent)
 RUN npm run build

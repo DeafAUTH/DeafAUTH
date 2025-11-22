@@ -19,3 +19,7 @@ services:
     restart: unless-stopped
     networks:
       - webnet
+
+networks:
+  webnet:
+    # Use default settings

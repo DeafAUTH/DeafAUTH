@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "node:crypto": "https://deno.land/std@0.208.0/node/crypto.ts"
+  }
+}

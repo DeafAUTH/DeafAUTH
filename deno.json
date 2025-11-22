@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "lib": ["es2022", "dom"],
+    "target": "es2022",
+    "strict": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "importMap": "import_map.json",
+  "fmt": {
+    "options": {
+      "lineWidth": 80,
+      "indentWidth": 2,
+      "semiColons": true,
+      "singleQuote": false
+    }
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "tasks": {
+    "build": "deno cache supabase/functions/**/index.ts",
+    "test": "deno test --allow-all",
+    "serve": "supabase functions serve",
+    "deploy": "supabase functions deploy"
+  }
+}

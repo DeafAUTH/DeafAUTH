@@ -1,0 +1,86 @@
+name: Deploy Supabase Edge Functions
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/deploy-functions.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.37.0
+
+      - name: Cache Deno dependencies
+        run: deno cache supabase/functions/**/index.ts
+
+      - name: Install Supabase CLI
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Authenticate Supabase CLI
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase login --token $SUPABASE_ACCESS_TOKEN
+
+      - name: Set environment secrets for Edge Functions
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          HMAC_SECRET: ${{ secrets.HMAC_SECRET }}
+        run: |
+          # Set secrets for Edge Functions runtime
+          # SUPABASE_URL and SUPABASE_ANON_KEY are automatically provided
+          # We only need to set additional secrets here
+          
+          if [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            supabase secrets set SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+              --project-ref $SUPABASE_PROJECT_REF || true
+          fi
+          
+          if [ -n "$HMAC_SECRET" ]; then
+            supabase secrets set HMAC_SECRET="$HMAC_SECRET" \
+              --project-ref $SUPABASE_PROJECT_REF || true
+          fi
+          
+          # Add other secrets as needed:
+          # supabase secrets set FIBONROSE_API_KEY="${{ secrets.FIBONROSE_API_KEY }}" \
+          #   --project-ref $SUPABASE_PROJECT_REF || true
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          # Deploy all functions inside supabase/functions
+          for fn in supabase/functions/*; do
+            if [ -d "$fn" ]; then
+              name=$(basename "$fn")
+              echo "Deploying function: $name"
+              supabase functions deploy "$name" --project-ref $SUPABASE_PROJECT_REF || exit 1
+            fi
+          done
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Edge Functions deployed successfully"
+          echo "Functions deployed:"
+          for fn in supabase/functions/*; do
+            if [ -d "$fn" ]; then
+              echo "  - $(basename "$fn")"
+            fi
+          done

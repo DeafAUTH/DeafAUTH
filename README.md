@@ -66,6 +66,24 @@ All checks must pass before merging code.
 
 📖 **[View Complete DevOps Documentation](docs/DEVOPS.md)**
 
+### Supabase Edge Functions
+
+The project includes serverless Edge Functions for secure authentication verification:
+
+- **deafauth-verify**: Verifies portable tokens and JWT authentication
+- Automatic deployment via GitHub Actions
+- Server-side security with service role keys
+
+```bash
+# Local development
+supabase functions serve
+
+# Deploy manually
+supabase functions deploy deafauth-verify --project-ref <project-ref>
+```
+
+📖 **[View Edge Functions Documentation](supabase/functions/README.md)**
+
 ## Example Usage
 
 ```typescript

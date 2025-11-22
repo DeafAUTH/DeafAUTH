@@ -44,7 +44,7 @@ async function supabaseRpc(sql: string, params: any[] = []) {
 }
 
 async function insertAudit(audit: Record<string, any>) {
-  const url = `${SUPABASE_URL}/rest/v1/token_verification_audit`;
+  const url = `${SUPABASE_URL}/rest/v1/deafauth.token_verification_audit`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
       const tokenHash = sha256hex(token); // match storage scheme; adjust if you use bcrypt or HMAC
       // Query portable_identity_tokens where token_hash = tokenHash and is_revoked = false and expires_at > now()
       const rows = await fetchFromTable(
-        "portable_identity_tokens",
+        "deafauth.portable_identity_tokens",
         `token_hash=eq.${
           encodeURIComponent(tokenHash)
         }&is_revoked=eq.false&expires_at=gt.${new Date().toISOString()}`,
@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
         // fetch public profile for the user (view)
         const userId = found.user_id;
         const profiles = await fetchFromTable(
-          "public_profile",
+          "deafauth.public_profile",
           `deafauth_user_id=eq.${userId}`,
         );
         const profile = Array.isArray(profiles) && profiles.length > 0
@@ -112,7 +112,7 @@ Deno.serve(async (req: Request) => {
 
         // mark token as revoked (best-effort) — PATCH portable_identity_tokens set is_revoked=true
         const revokeRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/portable_identity_tokens?id=eq.${found.id}`,
+          `${SUPABASE_URL}/rest/v1/deafauth.portable_identity_tokens?id=eq.${found.id}`,
           {
             method: "PATCH",
             headers: {
@@ -201,7 +201,7 @@ Deno.serve(async (req: Request) => {
 
       // Map to deafauth user via foreign key associations: query deafauth.user_profiles or deafauth.users
       const profileRows = await fetchFromTable(
-        "public_profile",
+        "deafauth.public_profile",
         `auth_user_id=eq.${authUserId}`,
       );
       const profile = Array.isArray(profileRows) && profileRows.length > 0

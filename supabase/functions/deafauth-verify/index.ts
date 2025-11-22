@@ -8,7 +8,6 @@ import { createHash } from "node:crypto";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 }
@@ -32,6 +31,16 @@ async function fetchFromTable(table: string, filter: string) {
     throw new Error(`Supabase REST error (${res.status}): ${txt}`);
   }
   return res.json();
+}
+
+async function supabaseRpc(sql: string, params: any[] = []) {
+  // Minimal helper using Postgres RPC via REST: use the Postgres REST endpoint (/rest/v1/rpc) is not ideal for raw SQL.
+  // We'll call the Postgres via the SQL API: /rest/v1/rpc is limited. Instead we'll call the Supabase "SQL" REST endpoint:
+  const url = `${SUPABASE_URL}/rest/v1/rpc`;
+  // Not used here; prefer direct Postgres via service key using Postgres client in Edge is not available.
+  // We'll use the Admin REST endpoint to query tables directly via supabase REST (table endpoints).
+  // For simplicity below we'll call table endpoints directly.
+  throw new Error("supabaseRpc unsupported in this minimal example");
 }
 
 async function insertAudit(audit: Record<string, any>) {

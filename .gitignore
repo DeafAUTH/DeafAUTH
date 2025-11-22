@@ -26,6 +26,8 @@ requirement.txt
 .DS_Store
 *.pem
 Optimal-Regions.md
+/Mbtq-technical-implementation.md
+
 
 # debug
 npm-debug.log*

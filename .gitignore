@@ -25,6 +25,7 @@ requirement.txt
 # misc
 .DS_Store
 *.pem
+Optimal-Regions.md
 
 # debug
 npm-debug.log*

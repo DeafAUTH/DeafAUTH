@@ -1,4 +1,6 @@
-deafauth:
+version: '3.8'
+services:
+  deafauth:
     build:
       context: ./deafauth
       dockerfile: Dockerfile

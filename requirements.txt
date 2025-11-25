@@ -1,23 +1,21 @@
 # Core Dependencies
 python-dotenv==1.0.0
-numpy==1.24.3
+numpy==1.26.4
 opencv-python==4.8.1.78
-tensorflow==2.15.0
-mediapipe==0.10.8
-supabase==1.0.3
+tensorflow==2.16.2
+mediapipe==0.10.14
+supabase==2.4.0
 PyJWT==2.8.0
 
 # Computer Vision
 opencv-contrib-python==4.8.1.78
-mediapipe-solutions==0.10.8
 
 # Machine Learning
-scikit-learn==1.5.0
-tensorflow-hub==0.14.0
-tensorflow-io==0.31.0
+scikit-learn==1.5.2
+tensorflow-hub==0.16.1
+tensorflow-io==0.37.1
 
 # Database
-supabase-py==1.0.3
 psycopg2-binary==2.9.9
 
 # Security
@@ -49,5 +47,5 @@ sphinx-autodoc-typehints==1.24.0
 # Utilities
 pyyaml==6.0.1
 schedule==1.2.0
-tqdm==4.66.3
+tqdm==4.66.4
 python-dateutil==2.8.2

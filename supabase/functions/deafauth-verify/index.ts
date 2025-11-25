@@ -235,9 +235,10 @@ Deno.serve(async (req: Request) => {
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
+    // Log the error details for server-side debugging, but do not expose them to the client
     console.error(err);
     return new Response(
-      JSON.stringify({ error: "internal_error", detail: String(err) }),
+      JSON.stringify({ error: "internal_error" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

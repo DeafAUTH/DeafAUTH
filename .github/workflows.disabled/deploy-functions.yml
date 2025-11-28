@@ -1,0 +1,30 @@
+# Deploy Supabase Edge Functions
+# 
+# DISABLED: This workflow has been disabled as part of the Supabase deployment pause.
+# The supabase/ directory has been archived to supabase-disabled/.
+# To restore: move this file back to .github/workflows/ and restore supabase-disabled/ to supabase/
+#
+# Original workflow would deploy Edge Functions to Supabase on push to main.
+
+name: Deploy Supabase Functions (DISABLED)
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'This workflow is disabled. See supabase-disabled/ for archived code.'
+        required: false
+
+jobs:
+  disabled-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: |
+          echo "Supabase Edge Function deployment is currently disabled."
+          echo "The supabase/ directory has been archived to supabase-disabled/"
+          echo "To restore deployment:"
+          echo "  1. Move this workflow to .github/workflows/deploy-functions.yml"
+          echo "  2. Move supabase-disabled/ back to supabase/"
+          echo "  3. Configure SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_ID secrets"
+          exit 1

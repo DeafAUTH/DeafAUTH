@@ -75,3 +75,16 @@ USING (
     WHERE auth_sessions.id = asl_verification_attempts.session_id AND auth_sessions.user_id = auth.uid()
   )
 );
+
+-- ============================================================================
+-- SECURITY NOTE (Archive Migration)
+-- ============================================================================
+-- NOTE: Granting INSERT to 'authenticated' may allow clients to insert audit rows;
+-- prefer service-role only. This line is commented out for safety in repository archive.
+--
+-- If adding a token_verification_audit or similar audit table in the future:
+-- DO NOT use: GRANT INSERT ON deafauth.token_verification_audit TO authenticated;
+-- INSTEAD use service-role inserts from server-side code only.
+--
+-- See docs/SECURITY.md for more information.
+-- ============================================================================

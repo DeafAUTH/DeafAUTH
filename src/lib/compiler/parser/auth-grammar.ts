@@ -8,6 +8,7 @@ import {
   AuthFlowNode,
   AuthInputSchema,
   AuthProviderType,
+  AuthMethod,
   OAuth2Schema,
   SAMLSchema,
   FirebaseSchema,
@@ -16,7 +17,7 @@ import {
   VisualAuthNode,
   TimeFlexibilityNode,
   ASLIntegrationNode,
-} from './types';
+} from '../types';
 
 export class AuthGrammar {
   private version = '1.0.0';
@@ -58,7 +59,7 @@ export class AuthGrammar {
    * Parse OAuth2 schema
    */
   private parseOAuth2(schema: OAuth2Schema): AuthAST {
-    const flows: AuthFlowNode[] = schema.flows.map(flow => ({
+    const flows: AuthFlowNode[] = schema.flows.map((flow: string) => ({
       type: 'flow' as const,
       name: `oauth2_${flow}`,
       steps: [
@@ -156,7 +157,7 @@ export class AuthGrammar {
    * Parse Universal DeafAUTH schema
    */
   private parseUniversal(schema: UniversalAuthSchema): AuthAST {
-    const flows: AuthFlowNode[] = schema.methods.map(method => ({
+    const flows: AuthFlowNode[] = schema.methods.map((method: AuthMethod) => ({
       type: 'flow' as const,
       name: `deafauth_${method}`,
       steps: [

@@ -10,6 +10,7 @@ import type {
   FirebaseSchema,
   Auth0Schema,
   UniversalAuthSchema,
+  AuthFlowNode,
 } from '../../../lib/compiler/types';
 
 describe('AuthGrammar', () => {
@@ -117,8 +118,8 @@ describe('AuthGrammar', () => {
 
       const ast = grammar.parse(schema);
       
-      expect(ast.flows.some(f => f.name === 'firebase_email')).toBe(true);
-      expect(ast.flows.some(f => f.name === 'firebase_social')).toBe(true);
+      expect(ast.flows.some((f: AuthFlowNode) => f.name === 'firebase_email')).toBe(true);
+      expect(ast.flows.some((f: AuthFlowNode) => f.name === 'firebase_social')).toBe(true);
     });
   });
 
@@ -182,9 +183,9 @@ describe('AuthGrammar', () => {
 
       const ast = grammar.parse(schema);
       
-      expect(ast.flows.some(f => f.name === 'deafauth_visual')).toBe(true);
-      expect(ast.flows.some(f => f.name === 'deafauth_biometric')).toBe(true);
-      expect(ast.flows.some(f => f.name === 'deafauth_passkey')).toBe(true);
+      expect(ast.flows.some((f: AuthFlowNode) => f.name === 'deafauth_visual')).toBe(true);
+      expect(ast.flows.some((f: AuthFlowNode) => f.name === 'deafauth_biometric')).toBe(true);
+      expect(ast.flows.some((f: AuthFlowNode) => f.name === 'deafauth_passkey')).toBe(true);
     });
   });
 

@@ -11,7 +11,7 @@ import {
   TimeFlexibilityNode,
   ASLIntegrationNode,
   AuthProviderType,
-} from './types';
+} from '../types';
 
 /**
  * IR Node for a complete authentication flow
@@ -55,7 +55,7 @@ export class AuthIR {
    * Convert AuthAST to IR flows
    */
   toIR(ast: AuthAST): IRAuthFlow[] {
-    return ast.flows.map(flow => this.flowToIR(flow, ast));
+    return ast.flows.map((flow: AuthFlowNode) => this.flowToIR(flow, ast));
   }
 
   /**

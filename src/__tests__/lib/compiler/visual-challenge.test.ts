@@ -77,6 +77,38 @@ describe('Visual Challenge Runtime', () => {
   });
 
   describe('verifyVisualChallenge', () => {
+    it('should verify pattern response correctly', async () => {
+      const challenge = generateVisualChallenge('pattern');
+      const data = challenge.data as { grid: number[]; minPoints: number };
+      
+      // Valid pattern with minimum points
+      const result = await verifyVisualChallenge(challenge, {
+        pattern: [0, 1, 2, 3], // 4 points, min is 4
+      });
+      
+      expect(result.verified).toBe(true);
+    });
+
+    it('should fail pattern with too few points', async () => {
+      const challenge = generateVisualChallenge('pattern');
+      
+      const result = await verifyVisualChallenge(challenge, {
+        pattern: [0, 1], // Only 2 points, min is 4
+      });
+      
+      expect(result.verified).toBe(false);
+    });
+
+    it('should fail pattern with duplicate consecutive points', async () => {
+      const challenge = generateVisualChallenge('pattern');
+      
+      const result = await verifyVisualChallenge(challenge, {
+        pattern: [0, 1, 1, 2], // Duplicate consecutive point
+      });
+      
+      expect(result.verified).toBe(false);
+    });
+
     it('should verify image_select response correctly', async () => {
       const challenge = generateVisualChallenge('image_select');
       const correctIndex = (challenge.data as { correctIndex: number }).correctIndex;

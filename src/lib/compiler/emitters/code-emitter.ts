@@ -69,7 +69,6 @@ export interface FrameworkEmitter {
  */
 export class ReactEmitter implements FrameworkEmitter {
   emit(flows: IRAuthFlow[]): string {
-    const flowNames = flows.map(f => this.toPascalCase(f.name)).join(', ');
     const accessibility = flows[0]?.accessibility;
     
     return `// DeafAUTH React Component - Auto-generated
@@ -179,13 +178,6 @@ export const useDeafAuth = () => {
   };
 };
 `;
-  }
-
-  private toPascalCase(str: string): string {
-    return str
-      .split(/[_\s-]+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join('');
   }
 }
 
@@ -350,7 +342,7 @@ class DeafAuthElement extends HTMLElement {
           cursor: not-allowed;
         }
       </style>
-      <button class="deaf-auth-button" \${this._loading ? 'disabled' : ''} aria-label="Visual Sign In">
+      <button class="deaf-auth-button" aria-label="Visual Sign In" \${this._loading ? 'disabled="disabled"' : ''}>
         \${this._loading ? 'Authenticating...' : 'Visual Sign In'}
       </button>
     \`;

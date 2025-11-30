@@ -166,8 +166,33 @@ async function verifyChallengeResponse(
   }
 }
 
-function verifyPatternResponse(_data: unknown, _response: unknown): boolean {
-  // Implement pattern verification logic
+function verifyPatternResponse(data: unknown, response: unknown): boolean {
+  // Pattern verification: check if the user's pattern matches the expected pattern
+  const challengeData = data as { grid: number[]; minPoints: number };
+  const userResponse = response as { pattern: number[] };
+  
+  // Validate that the pattern has minimum required points
+  if (!userResponse.pattern || userResponse.pattern.length < challengeData.minPoints) {
+    return false;
+  }
+  
+  // Validate that all points are within the grid bounds
+  const maxPoint = challengeData.grid[0] * challengeData.grid[1];
+  const validPoints = userResponse.pattern.every(
+    (point: number) => point >= 0 && point < maxPoint
+  );
+  
+  if (!validPoints) {
+    return false;
+  }
+  
+  // Validate no duplicate consecutive points
+  for (let i = 1; i < userResponse.pattern.length; i++) {
+    if (userResponse.pattern[i] === userResponse.pattern[i - 1]) {
+      return false;
+    }
+  }
+  
   return true;
 }
 

@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server';
 
 // In a real app, you would have session management to identify the user
 // and fetch their actual profile from a database.
-export async function GET(request: Request) {
+export async function GET() {
   // For demonstration, we'll return mock data.
   const userProfile = {
     id: 'user-123',

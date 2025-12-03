@@ -17,10 +17,7 @@ describe('Profile API Route', () => {
   });
 
   it('should return user profile data', async () => {
-    // Create a minimal mock request object
-    const mockRequest = {} as Request;
-    
-    const response = await GET(mockRequest);
+    const response = await GET();
     const data = await response.json();
 
     expect(NextResponse.json).toHaveBeenCalled();
@@ -35,9 +32,7 @@ describe('Profile API Route', () => {
   });
 
   it('should return correct profile structure', async () => {
-    const mockRequest = {} as Request;
-    
-    const response = await GET(mockRequest);
+    const response = await GET();
     const data = await response.json();
 
     expect(typeof data.id).toBe('string');
@@ -50,9 +45,7 @@ describe('Profile API Route', () => {
   });
 
   it('should include valid email format in profile', async () => {
-    const mockRequest = {} as Request;
-    
-    const response = await GET(mockRequest);
+    const response = await GET();
     const data = await response.json();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

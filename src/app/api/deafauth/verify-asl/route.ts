@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server';
-import {verifyAslVideo, type VerifyAslVideoInput, type VerifyAslVideoOutput} from '@/ai/flows/verify-asl-video';
+import {verifyAslVideo, type VerifyAslVideoOutput} from '@/ai/flows/verify-asl-video';
 import { z } from 'zod';
 
 // We can reuse the input schema from the flow for validation
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("ASL Verification API Error:", error);
-    const result: VerifyAslVideoOutput = { isAuthentic: false, message: "An unexpected error occurred during verification." };
+    const result: VerifyAslVideoOutput = { isAuthentic: false, faceDetected: false, message: "An unexpected error occurred during verification." };
     return NextResponse.json(result, {status: 500});
   }
 }

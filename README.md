@@ -84,6 +84,16 @@ supabase functions deploy deafauth-verify --project-ref <project-ref>
 
 📖 **[View Edge Functions Documentation](supabase/functions/README.md)**
 
+### Runtime Compatibility
+
+DeafAUTH is designed to be runtime-agnostic and can be adapted to work with:
+
+- **Deno Fresh**: Server-rendered Preact with islands architecture
+- **Vite + React**: Fast build tool with full React compatibility
+- **Node.js/Next.js**: Current default configuration
+
+📖 **[View Runtime Compatibility Guide](docs/RUNTIME_COMPATIBILITY.md)**
+
 ## Example Usage
 
 ```typescript

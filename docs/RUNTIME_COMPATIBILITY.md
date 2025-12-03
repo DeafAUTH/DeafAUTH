@@ -178,13 +178,25 @@ export const loginSchema = z.object({ ... });
 import { createClient } from '@supabase/supabase-js';
 
 // Runtime detection pattern
+interface ImportMetaEnv {
+  [key: string]: string | undefined;
+}
+
+interface ExtendedImportMeta {
+  env?: ImportMetaEnv;
+}
+
 const getEnv = (key: string): string => {
+  // Deno runtime
   if (typeof Deno !== 'undefined') {
     return Deno.env.get(key) ?? '';
   }
+  // Vite/ESM runtime
   if (typeof import.meta !== 'undefined') {
-    return (import.meta as any).env?.[key] ?? '';
+    const meta = import.meta as ExtendedImportMeta;
+    return meta.env?.[key] ?? '';
   }
+  // Node.js runtime
   return process.env[key] ?? '';
 };
 ```

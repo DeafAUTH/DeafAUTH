@@ -306,7 +306,7 @@ export class NextAuthAdapter implements AuthAdapter {
 
       return {
         success: false,
-        error: 'Failed to get session',
+        error: 'Authentication succeeded but session could not be retrieved. Ensure NextAuth is properly configured.',
       };
     } catch (error) {
       return {

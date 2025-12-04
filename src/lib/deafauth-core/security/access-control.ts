@@ -14,6 +14,7 @@ import type {
 } from './types';
 import type { DatabaseAdapter } from '../types';
 import { ScopeManager } from './oauth2-scopes';
+import { TokenManager, type TokenFormat } from './token-manager';
 
 /**
  * Generate a secure random string
@@ -76,6 +77,7 @@ export class AccessControlManager {
   private dbAdapter: DatabaseAdapter | null;
   private config: SecurityConfig;
   private scopeManager: ScopeManager;
+  private tokenManager: TokenManager;
   private memoryApps: Map<string, ThirdPartyApp>;
   private memoryGrants: Map<string, AccessGrant>;
   private authCodes: Map<string, { userId: string; appId: string; scopes: string[]; expiresAt: number }>;
@@ -90,9 +92,17 @@ export class AccessControlManager {
       refreshTokenExpiry: config.refreshTokenExpiry ?? 2592000,   // 30 days
       authCodeExpiry: config.authCodeExpiry ?? 600,               // 10 minutes
       enableAuditLog: config.enableAuditLog ?? true,
+      tokenFormat: config.tokenFormat ?? 'paseto',                // Default to PASETO
       ...config,
     };
     this.scopeManager = new ScopeManager();
+    this.tokenManager = new TokenManager({
+      format: this.config.tokenFormat as TokenFormat,
+      secretKey: config.tokenSecretKey,
+      issuer: config.tokenIssuer ?? 'deafauth',
+      accessTokenExpiry: this.config.accessTokenExpiry,
+      refreshTokenExpiry: this.config.refreshTokenExpiry,
+    });
     this.memoryApps = new Map();
     this.memoryGrants = new Map();
     this.authCodes = new Map();
@@ -363,17 +373,25 @@ export class AccessControlManager {
 
   /**
    * Create an access grant for a user-app pair
+   * Uses PASETO tokens by default (or JWT if configured)
    */
   async createAccessGrant(
     userId: string,
     appId: string,
     scopes: string[]
   ): Promise<AccessGrant> {
-    const accessToken = `at_${generateSecureString(48)}`;
-    const refreshToken = `rt_${generateSecureString(64)}`;
-    const expiresAt = new Date(
-      Date.now() + (this.config.accessTokenExpiry ?? 3600) * 1000
-    ).toISOString();
+    // Generate PASETO/JWT tokens using TokenManager
+    const accessTokenResult = await this.tokenManager.generateAccessToken({
+      sub: userId,
+      aud: appId,
+      scopes,
+    });
+    
+    const refreshTokenResult = await this.tokenManager.generateRefreshToken({
+      sub: userId,
+      aud: appId,
+      scopes,
+    });
 
     const grant: AccessGrant = {
       id: generateId(),
@@ -381,9 +399,9 @@ export class AccessControlManager {
       appId,
       scopes,
       grantedAt: new Date().toISOString(),
-      expiresAt,
-      accessToken,
-      refreshToken,
+      expiresAt: new Date(accessTokenResult.expiresAt).toISOString(),
+      accessToken: accessTokenResult.token,
+      refreshToken: refreshTokenResult.token,
     };
 
     // Store the grant
@@ -406,13 +424,30 @@ export class AccessControlManager {
   }
 
   /**
-   * Validate an access token
+   * Validate an access token (PASETO or JWT)
    */
   async validateAccessToken(token: string): Promise<{
     valid: boolean;
     grant?: AccessGrant;
+    payload?: { sub: string; aud?: string; scopes?: string[] };
     error?: string;
   }> {
+    // First validate the token cryptographically using TokenManager
+    const tokenValidation = await this.tokenManager.validateToken(token);
+    
+    if (!tokenValidation.valid) {
+      return { 
+        valid: false, 
+        error: tokenValidation.error,
+      };
+    }
+
+    // Check token type
+    if (tokenValidation.payload?.type !== 'access') {
+      return { valid: false, error: 'Invalid token type' };
+    }
+
+    // Look up the grant in storage for additional validation
     let grant: AccessGrant | null = null;
 
     if (this.dbAdapter) {
@@ -427,19 +462,20 @@ export class AccessControlManager {
       }
     }
 
-    if (!grant) {
-      return { valid: false, error: 'Token not found' };
-    }
-
-    if (grant.revokedAt) {
+    // If grant found in storage, check revocation status
+    if (grant?.revokedAt) {
       return { valid: false, error: 'Token has been revoked', grant };
     }
 
-    if (grant.expiresAt && new Date(grant.expiresAt) < new Date()) {
-      return { valid: false, error: 'Token has expired', grant };
-    }
-
-    return { valid: true, grant };
+    return { 
+      valid: true, 
+      grant: grant ?? undefined,
+      payload: tokenValidation.payload ? {
+        sub: tokenValidation.payload.sub,
+        aud: tokenValidation.payload.aud,
+        scopes: tokenValidation.payload.scopes,
+      } : undefined,
+    };
   }
 
   /**

@@ -303,3 +303,192 @@ describe('DEFAULT_SCOPES', () => {
     expect(DEFAULT_SCOPES['admin:write'].category).toBe('admin');
   });
 });
+
+// Import TokenManager for testing
+import { TokenManager, createPasetoTokenManager, createJwtTokenManager } from '../../../lib/deafauth-core/security/token-manager';
+
+describe('TokenManager', () => {
+  describe('PASETO tokens (default)', () => {
+    let tokenManager: TokenManager;
+
+    beforeEach(() => {
+      tokenManager = new TokenManager({
+        secretKey: 'test-secret-key-for-paseto-testing',
+        issuer: 'test-issuer',
+      });
+    });
+
+    it('should use PASETO format by default', () => {
+      expect(tokenManager.getFormat()).toBe('paseto');
+      expect(tokenManager.isPaseto()).toBe(true);
+      expect(tokenManager.isJwt()).toBe(false);
+    });
+
+    it('should generate PASETO access token', async () => {
+      const result = await tokenManager.generateAccessToken({
+        sub: 'user_123',
+        scopes: ['profile:read'],
+      });
+
+      expect(result.token).toBeDefined();
+      expect(result.token.startsWith('v4.local.')).toBe(true);
+      expect(result.format).toBe('paseto');
+      expect(result.payload.sub).toBe('user_123');
+      expect(result.payload.type).toBe('access');
+      expect(result.payload.scopes).toEqual(['profile:read']);
+    });
+
+    it('should generate PASETO refresh token', async () => {
+      const result = await tokenManager.generateRefreshToken({
+        sub: 'user_123',
+        scopes: ['profile:read'],
+      });
+
+      expect(result.token).toBeDefined();
+      expect(result.token.startsWith('v4.local.')).toBe(true);
+      expect(result.payload.type).toBe('refresh');
+    });
+
+    it('should validate valid PASETO token', async () => {
+      const { token } = await tokenManager.generateAccessToken({
+        sub: 'user_123',
+        scopes: ['profile:read'],
+      });
+
+      const result = await tokenManager.validateToken(token);
+
+      expect(result.valid).toBe(true);
+      expect(result.payload?.sub).toBe('user_123');
+      expect(result.payload?.scopes).toEqual(['profile:read']);
+    });
+
+    it('should reject invalid PASETO token', async () => {
+      const result = await tokenManager.validateToken('v4.local.invalid-token');
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should detect expired tokens', async () => {
+      // Create a token manager with very short expiry
+      const shortExpiryManager = new TokenManager({
+        secretKey: 'test-secret',
+        accessTokenExpiry: -1, // Already expired
+      });
+
+      const { token } = await shortExpiryManager.generateAccessToken({
+        sub: 'user_123',
+      });
+
+      const result = await shortExpiryManager.validateToken(token);
+
+      expect(result.valid).toBe(false);
+      expect(result.expired).toBe(true);
+    });
+  });
+
+  describe('JWT tokens (optional)', () => {
+    let tokenManager: TokenManager;
+
+    beforeEach(() => {
+      tokenManager = new TokenManager({
+        format: 'jwt',
+        secretKey: 'test-secret-key-for-jwt-testing',
+        issuer: 'test-issuer',
+      });
+    });
+
+    it('should use JWT format when configured', () => {
+      expect(tokenManager.getFormat()).toBe('jwt');
+      expect(tokenManager.isJwt()).toBe(true);
+      expect(tokenManager.isPaseto()).toBe(false);
+    });
+
+    it('should generate JWT access token', async () => {
+      const result = await tokenManager.generateAccessToken({
+        sub: 'user_123',
+        scopes: ['profile:read'],
+      });
+
+      expect(result.token).toBeDefined();
+      // JWT has 3 parts separated by dots
+      expect(result.token.split('.').length).toBe(3);
+      expect(result.format).toBe('jwt');
+      expect(result.payload.sub).toBe('user_123');
+    });
+
+    it('should validate valid JWT token', async () => {
+      const { token } = await tokenManager.generateAccessToken({
+        sub: 'user_123',
+        scopes: ['profile:read'],
+      });
+
+      const result = await tokenManager.validateToken(token);
+
+      expect(result.valid).toBe(true);
+      expect(result.payload?.sub).toBe('user_123');
+    });
+
+    it('should reject tampered JWT token', async () => {
+      const { token } = await tokenManager.generateAccessToken({
+        sub: 'user_123',
+      });
+
+      // Tamper with the token payload
+      const parts = token.split('.');
+      parts[1] = 'tampered-payload';
+      const tamperedToken = parts.join('.');
+
+      const result = await tokenManager.validateToken(tamperedToken);
+
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe('factory functions', () => {
+    it('should create PASETO token manager', () => {
+      const manager = createPasetoTokenManager({
+        secretKey: 'test-secret',
+      });
+
+      expect(manager.isPaseto()).toBe(true);
+    });
+
+    it('should create JWT token manager', () => {
+      const manager = createJwtTokenManager({
+        secretKey: 'test-secret',
+      });
+
+      expect(manager.isJwt()).toBe(true);
+    });
+  });
+
+  describe('token format detection', () => {
+    it('should detect and validate PASETO token', async () => {
+      const pasetoManager = createPasetoTokenManager({
+        secretKey: 'test-secret',
+      });
+
+      const { token } = await pasetoManager.generateAccessToken({
+        sub: 'user_123',
+      });
+
+      // Even a JWT-configured manager should be able to detect PASETO format
+      const result = await pasetoManager.validateToken(token);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should detect and validate JWT token', async () => {
+      const jwtManager = createJwtTokenManager({
+        secretKey: 'test-secret',
+      });
+
+      const { token } = await jwtManager.generateAccessToken({
+        sub: 'user_123',
+      });
+
+      const result = await jwtManager.validateToken(token);
+      expect(result.valid).toBe(true);
+    });
+  });
+});

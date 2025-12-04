@@ -284,6 +284,11 @@ export interface SecurityTarget {
 // ============================================
 
 /**
+ * Token format options
+ */
+export type TokenFormat = 'paseto' | 'jwt';
+
+/**
  * Security module configuration
  */
 export interface SecurityConfig {
@@ -291,6 +296,11 @@ export interface SecurityConfig {
   apiKeyPrefix?: string;
   apiKeyLength?: number;
   defaultApiKeyExpiry?: number; // seconds
+  
+  // Token settings
+  tokenFormat?: TokenFormat;     // 'paseto' (default) or 'jwt'
+  tokenSecretKey?: string;       // Secret key for token signing/encryption
+  tokenIssuer?: string;          // Token issuer claim
   
   // OAuth2 settings
   accessTokenExpiry?: number;   // seconds

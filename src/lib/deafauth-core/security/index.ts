@@ -17,3 +17,12 @@ export {
   createScopeManager,
   DEFAULT_SCOPES 
 } from './oauth2-scopes';
+export {
+  TokenManager,
+  createPasetoTokenManager,
+  createJwtTokenManager,
+  type TokenPayload,
+  type TokenResult,
+  type TokenValidationResult,
+  type TokenManagerConfig,
+} from './token-manager';

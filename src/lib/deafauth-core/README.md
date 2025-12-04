@@ -384,6 +384,52 @@ MIT
 
 DeafAUTH includes a comprehensive security module for third-party access control, API key management, OAuth2 scopes, and rate limiting.
 
+### Token Management (PASETO / JWT)
+
+DeafAUTH uses **PASETO (Platform-Agnostic Security Tokens)** as the default token format, with JWT available as an optional alternative. PASETO provides secure-by-default tokens without the cryptographic pitfalls of JWT.
+
+```typescript
+import { TokenManager, createPasetoTokenManager, createJwtTokenManager } from '@/lib/deafauth-core/security';
+
+// PASETO tokens (default - recommended)
+const pasetoManager = new TokenManager({
+  secretKey: process.env.DEAFAUTH_SECRET_KEY,
+  issuer: 'deafauth.io',
+});
+
+// Generate PASETO access token
+const { token, expiresAt } = await pasetoManager.generateAccessToken({
+  sub: 'user_123',
+  scopes: ['profile:read', 'preferences:read'],
+});
+// Token format: v4.local.xxxxx...
+
+// Validate token
+const result = await pasetoManager.validateToken(token);
+if (result.valid) {
+  console.log('User ID:', result.payload.sub);
+  console.log('Scopes:', result.payload.scopes);
+}
+
+// JWT tokens (optional alternative)
+const jwtManager = new TokenManager({
+  format: 'jwt',
+  secretKey: process.env.DEAFAUTH_SECRET_KEY,
+});
+
+const { token: jwtToken } = await jwtManager.generateAccessToken({
+  sub: 'user_123',
+  scopes: ['profile:read'],
+});
+// Token format: eyJhbGc...
+```
+
+**Why PASETO over JWT?**
+- **Secure by default**: No algorithm confusion attacks
+- **Versioned protocol**: Each version is a complete specification
+- **Authenticated encryption**: v4.local uses AES-256-GCM
+- **No footguns**: Removes dangerous JWT features
+
 ### API Key Management
 
 ```typescript
@@ -416,10 +462,19 @@ if (apiKeyManager.hasScopes(apiKey, ['profile:read'])) {
 
 ### Third-Party Access Control
 
+Access control uses PASETO tokens by default. You can configure JWT as an alternative.
+
 ```typescript
 import { AccessControlManager } from '@/lib/deafauth-core/security';
 
+// Default: PASETO tokens
 const accessControl = new AccessControlManager(dbAdapter);
+
+// Or use JWT tokens
+const accessControlJwt = new AccessControlManager(dbAdapter, {
+  tokenFormat: 'jwt',
+  tokenSecretKey: process.env.DEAFAUTH_SECRET_KEY,
+});
 
 // Register a third-party app
 const app = await accessControl.registerApp({
@@ -438,14 +493,14 @@ const authResponse = await accessControl.authorize({
   responseType: 'code',
 }, userId);
 
-// Exchange authorization code for tokens
+// Exchange authorization code for PASETO tokens
 const tokens = await accessControl.exchangeCode(
   authCode,
   app.clientId,
   app.clientSecret
 );
 
-// Validate access token
+// Validate access token (PASETO or JWT)
 const validation = await accessControl.validateAccessToken(accessToken);
 ```
 

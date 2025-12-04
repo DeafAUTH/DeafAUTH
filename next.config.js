@@ -6,7 +6,7 @@ const nextConfig = {
   // Set to '/deafauth' for https://deafauth.github.io/deafauth/
   // Set to '' for custom domain or org-level pages
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
-  // Disable trailing slashes for cleaner URLs
+  // Enable trailing slashes for static export compatibility
   trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,

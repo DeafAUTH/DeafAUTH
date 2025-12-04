@@ -379,3 +379,183 @@ npm test
 ## License
 
 MIT
+
+## Security Module
+
+DeafAUTH includes a comprehensive security module for third-party access control, API key management, OAuth2 scopes, and rate limiting.
+
+### API Key Management
+
+```typescript
+import { ApiKeyManager } from '@/lib/deafauth-core/security';
+
+const apiKeyManager = new ApiKeyManager(dbAdapter, {
+  apiKeyPrefix: 'dak_',
+  apiKeyLength: 32,
+});
+
+// Create a new API key
+const { key, apiKey } = await apiKeyManager.createApiKey({
+  name: 'My App API Key',
+  clientId: 'client_123',
+  scopes: ['profile:read', 'preferences:read'],
+  expiresIn: 86400, // 24 hours
+});
+
+// Validate an API key
+const result = await apiKeyManager.validateApiKey(key);
+if (result.valid) {
+  console.log('Valid key with scopes:', result.key.scopes);
+}
+
+// Check if key has required scopes
+if (apiKeyManager.hasScopes(apiKey, ['profile:read'])) {
+  // Allow access
+}
+```
+
+### Third-Party Access Control
+
+```typescript
+import { AccessControlManager } from '@/lib/deafauth-core/security';
+
+const accessControl = new AccessControlManager(dbAdapter);
+
+// Register a third-party app
+const app = await accessControl.registerApp({
+  name: 'My Third-Party App',
+  ownerId: 'user_123',
+  redirectUris: ['https://myapp.com/callback'],
+  allowedScopes: ['profile:read', 'preferences:read'],
+});
+
+// Process OAuth2 authorization
+const authResponse = await accessControl.authorize({
+  clientId: app.clientId,
+  redirectUri: 'https://myapp.com/callback',
+  scopes: ['profile:read'],
+  state: 'random_state',
+  responseType: 'code',
+}, userId);
+
+// Exchange authorization code for tokens
+const tokens = await accessControl.exchangeCode(
+  authCode,
+  app.clientId,
+  app.clientSecret
+);
+
+// Validate access token
+const validation = await accessControl.validateAccessToken(accessToken);
+```
+
+### OAuth2 Scopes
+
+```typescript
+import { ScopeManager, DEFAULT_SCOPES } from '@/lib/deafauth-core/security';
+
+const scopeManager = new ScopeManager();
+
+// Validate requested scopes
+const validation = scopeManager.validateScopes(['profile:read', 'identity:read']);
+console.log('Valid:', validation.valid);
+console.log('Sensitive scopes:', validation.sensitiveScopes);
+
+// Check permissions
+if (scopeManager.hasPermission(['profile:read'], 'profile', 'read')) {
+  // Allow access
+}
+
+// Filter to allowed scopes
+const allowed = scopeManager.filterAllowedScopes(
+  ['profile:read', 'admin:write'],
+  ['profile:*', 'preferences:*']
+);
+```
+
+**Available Scopes:**
+
+| Scope | Description | Category | Sensitivity |
+|-------|-------------|----------|-------------|
+| `profile:read` | Read basic profile information | profile | protected |
+| `profile:write` | Update profile information | profile | protected |
+| `identity:read` | Read Deaf identity status | identity | sensitive |
+| `identity:verify` | Check if user is verified | identity | protected |
+| `preferences:read` | Read accessibility preferences | preferences | protected |
+| `preferences:write` | Update accessibility preferences | preferences | protected |
+| `validation:read` | Read validation history | validation | sensitive |
+| `validation:submit` | Submit community validations | validation | restricted |
+| `openid` | OpenID Connect identity token | readonly | public |
+| `email` | Email address access | profile | protected |
+| `admin:read` | Administrative read access | admin | restricted |
+| `admin:write` | Full administrative access | admin | restricted |
+
+### Rate Limiting
+
+```typescript
+import { RateLimiter, RATE_LIMIT_PRESETS } from '@/lib/deafauth-core/security';
+
+// Create rate limiter with custom config
+const rateLimiter = new RateLimiter({
+  windowMs: 60000,    // 1 minute
+  maxRequests: 100,   // 100 requests per minute
+});
+
+// Or use a preset
+const strictLimiter = new RateLimiter(RATE_LIMIT_PRESETS.strict);  // 10/min
+const standardLimiter = new RateLimiter(RATE_LIMIT_PRESETS.standard);  // 100/min
+
+// Check if request is allowed
+const result = await rateLimiter.check('user_123');
+if (!result.allowed) {
+  console.log('Rate limit exceeded, retry after:', result.info.retryAfter);
+}
+
+// Get rate limit info
+const info = rateLimiter.getInfo('user_123');
+console.log(`${info.remaining}/${info.limit} requests remaining`);
+```
+
+**Rate Limit Presets:**
+
+| Preset | Limit | Use Case |
+|--------|-------|----------|
+| `strict` | 10/min | Login, sensitive endpoints |
+| `standard` | 100/min | General API endpoints |
+| `relaxed` | 1000/min | High-traffic public endpoints |
+| `burst` | 20/sec | Endpoints needing burst capacity |
+| `daily` | 10000/day | Quota-based access |
+
+## Integration Snippets
+
+DeafAUTH provides ready-to-use code snippets for common integration scenarios:
+
+```typescript
+import { snippets } from '@/lib/deafauth-core';
+
+// Access React integration examples
+console.log(snippets.USE_DEAF_AUTH_HOOK);
+console.log(snippets.ACCESSIBILITY_PREFERENCES_FORM);
+console.log(snippets.PROTECTED_ROUTE_COMPONENT);
+
+// Access Next.js integration examples
+console.log(snippets.NEXTJS_API_ROUTE);
+console.log(snippets.NEXTJS_MIDDLEWARE);
+console.log(snippets.NEXTJS_SERVER_ACTIONS);
+
+// Access Express.js integration examples
+console.log(snippets.EXPRESS_ROUTER);
+console.log(snippets.EXPRESS_SECURITY_MIDDLEWARE);
+
+// Access API usage examples
+console.log(snippets.API_CLIENT);
+console.log(snippets.OAUTH2_FLOWS);
+console.log(snippets.WEBHOOK_INTEGRATION);
+```
+
+These snippets provide complete, production-ready code for:
+- React hooks and components
+- Next.js API routes and middleware
+- Express.js routers and middleware
+- OAuth2 client implementation
+- Webhook handling

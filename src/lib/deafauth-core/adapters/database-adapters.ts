@@ -144,8 +144,8 @@ interface SupabaseClient {
     select(columns: string): {
       match(query: QueryCondition): {
         single(): Promise<{ data: unknown; error: { code?: string; message: string } | null }>;
-      };
-    } & { data: unknown; error: { message: string } | null };
+      } & Promise<{ data: unknown; error: { message: string } | null }>;
+    };
     insert(records: Record<string, unknown>[]): {
       select(): {
         single(): Promise<{ data: unknown; error: { message: string } | null }>;

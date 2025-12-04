@@ -188,6 +188,9 @@ export interface DeafProfile {
   
   // Extensible metadata
   metadata?: Record<string, unknown>;
+  
+  // Index signature for Record<string, unknown> compatibility
+  [key: string]: unknown;
 }
 
 /**
@@ -222,6 +225,9 @@ export interface ValidationRecord {
   validatedAt: string;
   notes?: string;
   metadata?: Record<string, unknown>;
+  
+  // Index signature for Record<string, unknown> compatibility
+  [key: string]: unknown;
 }
 
 // ============================================

@@ -1,5 +1,7 @@
 // DeafAUTH Universal Adapter - Main Export
+// Identity Cortex - Gatekeeper and validation initial point
 // Works with ANY auth provider, ANY database, ANY framework
+// Uses PASETO tokens for secure, Deaf-first authentication
 // Deploy in under 5 minutes
 
 // Core class
@@ -54,3 +56,23 @@ export {
   PostgresAdapter,
   createDatabaseAdapter,
 } from './adapters/database-adapters';
+
+// PASETO Token Support (Platform-Agnostic SEcurity TOkens)
+// Reference: https://github.com/paragonie/paseto
+export {
+  createMockPasetoHandler,
+  isPasetoPayload,
+  isTokenExpired,
+  getTokenLifetime,
+  DEFAULT_PASETO_OPTIONS,
+} from './paseto';
+
+export type {
+  PasetoVersion,
+  PasetoPurpose,
+  PasetoPayload,
+  PasetoOptions,
+  TokenResult,
+  PasetoHandler,
+  PasetoHandlerConfig,
+} from './paseto';

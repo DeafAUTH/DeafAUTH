@@ -1,6 +1,18 @@
 # DeafAUTH Universal Adapter
 
+**Identity Cortex** - The Gatekeeper and Validation Initial Point for Deaf-first applications.
+
 DeafAUTH is a **framework-agnostic, plug-and-play authentication layer** designed specifically for Deaf-first applications. It works with ANY auth provider, ANY database, and ANY framework—deploy in under 5 minutes.
+
+## Purpose
+
+DeafAUTH serves as the **Identity Cortex** for accessibility accommodation purposes:
+
+- **Gatekeeper**: Validates and authenticates users with Deaf-first principles
+- **PinkSync Integration**: Connects with PinkSync for accessibility automation
+- **Deaf Community First**: Built by and for the Deaf community
+
+DeafAUTH is not trying to compete with other auth systems—it's purpose-built for Deaf users' accessibility needs.
 
 ## Features
 
@@ -9,6 +21,7 @@ DeafAUTH is a **framework-agnostic, plug-and-play authentication layer** designe
 ✅ **Works with ANY framework:** React, Vue, Svelte, vanilla JS, Node.js  
 ✅ **No database? No problem:** Auto-falls back to localStorage, works offline-first  
 ✅ **Switch providers anytime:** Change Auth0 → Firebase in 1 line  
+✅ **PASETO Token Support:** Secure Platform-Agnostic SEcurity TOkens (reference: [paragonie/paseto](https://github.com/paragonie/paseto))  
 
 ## Quick Start
 
@@ -369,6 +382,81 @@ When using a database adapter, DeafAUTH expects these tables/collections:
 | validatedBy | string | Validator ID |
 | validatedAt | timestamp | Validation time |
 | notes | string | Validation notes |
+
+## PASETO Token Support
+
+DeafAUTH includes support for [PASETO (Platform-Agnostic SEcurity TOkens)](https://github.com/paragonie/paseto), a more secure alternative to JWT that eliminates common cryptographic pitfalls.
+
+### Why PASETO?
+
+- **No Algorithm Confusion**: PASETO has fixed algorithms per version, preventing algorithm confusion attacks
+- **Future-Proof**: Designed with modern cryptography best practices
+- **Deaf-First Claims**: Built-in support for Deaf community-specific claims
+
+### Basic PASETO Usage
+
+```typescript
+import { createMockPasetoHandler } from '@/lib/deafauth-core';
+
+// Create handler (use mock for development, real PASETO for production)
+const paseto = createMockPasetoHandler({
+  issuer: 'deafauth.example.com',
+  audience: 'api.example.com',
+});
+
+// Generate token for authenticated user
+const tokenResult = await paseto.generateToken({
+  sub: user.id,
+  email: user.email,
+  deafStatus: profile.deafStatus,
+  validated: profile.validated,
+  pinkSyncEnabled: profile.pinkSyncEnabled,
+});
+
+if (tokenResult.success) {
+  console.log('Token:', tokenResult.token);
+  // Token format: v4.local.mock.{base64-payload}
+}
+
+// Verify token on protected routes
+const verifyResult = await paseto.verifyToken(token);
+if (verifyResult.success) {
+  console.log('User ID:', verifyResult.payload.sub);
+  console.log('Deaf Status:', verifyResult.payload.deafStatus);
+}
+
+// Refresh token before expiration
+const refreshResult = await paseto.refreshToken(token, {
+  expiresIn: 7200, // 2 hours
+});
+```
+
+### PASETO Payload Structure
+
+```typescript
+interface PasetoPayload {
+  sub: string;          // User ID
+  iat: string;          // Issued at (ISO 8601)
+  exp: string;          // Expiration (ISO 8601)
+  iss?: string;         // Issuer
+  aud?: string;         // Audience
+  email?: string;       // User email
+  name?: string;        // User name
+  deafStatus?: string;  // Deaf community status
+  validated?: boolean;  // Identity validated
+  pinkSyncEnabled?: boolean; // PinkSync enabled
+}
+```
+
+### Production PASETO
+
+For production use, install the `paseto` npm package and implement a real PASETO handler. The mock handler is suitable for development and testing only.
+
+```bash
+npm install paseto
+```
+
+Reference the [paragonie/paseto](https://github.com/paragonie/paseto) specification for production implementation details.
 
 ## Testing
 

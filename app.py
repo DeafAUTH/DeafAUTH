@@ -38,9 +38,11 @@ def create_app(config=None):
     db.init_app(app)
     
     # Enable CORS for agnostic frontend support
+    # In production, set CORS_ORIGINS environment variable to restrict origins
+    cors_origins = os.environ.get('CORS_ORIGINS', '*')
     CORS(app, resources={
         r"/auth/*": {
-            "origins": "*",
+            "origins": cors_origins.split(',') if cors_origins != '*' else '*',
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
         }

@@ -291,6 +291,7 @@ export class DeafAUTH {
 
   /**
    * Sync data to PinkSync endpoint
+   * Failures are logged but do not affect the main operation
    */
   private async syncToPinkSync(
     userId: string,
@@ -304,14 +305,21 @@ export class DeafAUTH {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, type: 'ACCESSIBILITY', data }),
         });
-      } catch {
-        // Silently fail - optional integration
+      } catch (error) {
+        // Log warning for optional integration failure
+        if (this.config.debug) {
+          console.warn(
+            '[DeafAUTH] PinkSync integration failed:',
+            error instanceof Error ? error.message : 'Unknown error'
+          );
+        }
       }
     }
   }
 
   /**
    * Log event to Fibonrose endpoint
+   * Failures are logged but do not affect the main operation
    */
   private async logEvent(
     type: string,
@@ -329,8 +337,14 @@ export class DeafAUTH {
             timestamp: new Date().toISOString(),
           }),
         });
-      } catch {
-        // Silently fail - optional integration
+      } catch (error) {
+        // Log warning for optional integration failure
+        if (this.config.debug) {
+          console.warn(
+            '[DeafAUTH] Fibonrose integration failed:',
+            error instanceof Error ? error.message : 'Unknown error'
+          );
+        }
       }
     }
   }
@@ -340,12 +354,24 @@ export class DeafAUTH {
   // ============================================
 
   /**
+   * Detect if running in a browser/client environment
+   * More robust than just checking for window
+   */
+  private isClientEnvironment(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      typeof window.localStorage !== 'undefined' &&
+      typeof document !== 'undefined'
+    );
+  }
+
+  /**
    * Create default in-memory/localStorage adapter
    * Used when no database is configured
    */
   private createDefaultStorage(): StorageAdapter {
     // Use Map for server-side, localStorage for client-side
-    const isClient = typeof window !== 'undefined';
+    const isClient = this.isClientEnvironment();
     const memoryStore = new Map<string, string>();
 
     const getItem = (key: string): string | null => {

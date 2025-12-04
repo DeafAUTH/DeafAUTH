@@ -249,6 +249,9 @@ export interface DeafAUTHConfig {
   pinkSyncEndpoint?: string;
   fibonroseEndpoint?: string;
   
+  // Debug mode - enables warning logs for optional integration failures
+  debug?: boolean;
+  
   // Custom configuration
   [key: string]: unknown;
 }

@@ -4,6 +4,30 @@
 import type { DatabaseAdapter, QueryCondition, UpdateOperation } from '../types';
 
 // ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Type guard for increment operations
+ */
+function isIncrementOperation(value: unknown): value is { increment: number } {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'increment' in value &&
+    typeof (value as { increment: number }).increment === 'number'
+  );
+}
+
+/**
+ * Validate table/column name to prevent SQL injection
+ * Only allows alphanumeric characters and underscores
+ */
+function isValidIdentifier(name: string): boolean {
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+}
+
+// ============================================
 // SUPABASE ADAPTER
 // ============================================
 
@@ -35,9 +59,9 @@ export class SupabaseAdapter implements DatabaseAdapter {
       .match(query)
       .single();
 
+    // PGRST116 is "no rows returned" - not a real error for findOne
     if (error && error.code !== 'PGRST116') {
-      // PGRST116 is "no rows returned" - not a real error for findOne
-      console.error('Supabase findOne error:', error);
+      throw new Error(`Supabase findOne error: ${error.message}`);
     }
 
     return data as T | null;
@@ -68,17 +92,12 @@ export class SupabaseAdapter implements DatabaseAdapter {
     // Handle increment operations
     const processedUpdates: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
-      if (
-        value &&
-        typeof value === 'object' &&
-        'increment' in value &&
-        typeof (value as { increment: number }).increment === 'number'
-      ) {
+      if (isIncrementOperation(value)) {
         // For increments, we need to use RPC or raw SQL
         // For now, fetch current value and increment
         const current = await this.findOne<Record<string, unknown>>(table, query);
         const currentVal = current?.[key] as number || 0;
-        processedUpdates[key] = currentVal + (value as { increment: number }).increment;
+        processedUpdates[key] = currentVal + value.increment;
       } else {
         processedUpdates[key] = value;
       }
@@ -208,16 +227,11 @@ export class FirebaseAdapter implements DatabaseAdapter {
       // Handle increment operations
       const processedUpdates: Record<string, unknown> = {};
       for (const [key, val] of Object.entries(updates)) {
-        if (
-          val &&
-          typeof val === 'object' &&
-          'increment' in val &&
-          typeof (val as { increment: number }).increment === 'number'
-        ) {
+        if (isIncrementOperation(val)) {
           // For Firebase, we'd use FieldValue.increment in real implementation
           const currentDoc = snapshot.docs[0].data();
           const currentVal = (currentDoc[key] as number) || 0;
-          processedUpdates[key] = currentVal + (val as { increment: number }).increment;
+          processedUpdates[key] = currentVal + val.increment;
         } else {
           processedUpdates[key] = val;
         }
@@ -346,13 +360,8 @@ export class MongoAdapter implements DatabaseAdapter {
     const $inc: Record<string, number> = {};
 
     for (const [key, value] of Object.entries(updates)) {
-      if (
-        value &&
-        typeof value === 'object' &&
-        'increment' in value &&
-        typeof (value as { increment: number }).increment === 'number'
-      ) {
-        $inc[key] = (value as { increment: number }).increment;
+      if (isIncrementOperation(value)) {
+        $inc[key] = value.increment;
       } else {
         $set[key] = value;
       }
@@ -420,11 +429,24 @@ export class PostgresAdapter implements DatabaseAdapter {
     this.pool = pool;
   }
 
+  /**
+   * Validate all identifiers (table/column names) to prevent SQL injection
+   */
+  private validateIdentifiers(...names: string[]): void {
+    for (const name of names) {
+      if (!isValidIdentifier(name)) {
+        throw new Error(`Invalid identifier: ${name}. Only alphanumeric characters and underscores are allowed.`);
+      }
+    }
+  }
+
   async findOne<T = Record<string, unknown>>(
     table: string,
     query: QueryCondition
   ): Promise<T | null> {
     const keys = Object.keys(query);
+    this.validateIdentifiers(table, ...keys);
+    
     const values = Object.values(query);
     const conditions = keys.map((k, i) => `"${k}" = $${i + 1}`).join(' AND ');
     
@@ -439,6 +461,8 @@ export class PostgresAdapter implements DatabaseAdapter {
     record: Record<string, unknown>
   ): Promise<T> {
     const keys = Object.keys(record);
+    this.validateIdentifiers(table, ...keys);
+    
     const values = Object.values(record);
     const columns = keys.map(k => `"${k}"`).join(', ');
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
@@ -455,24 +479,21 @@ export class PostgresAdapter implements DatabaseAdapter {
     updates: UpdateOperation
   ): Promise<void> {
     const queryKeys = Object.keys(query);
+    const updateKeys = Object.keys(updates);
+    this.validateIdentifiers(table, ...queryKeys, ...updateKeys);
+    
     const queryValues = Object.values(query);
     
     // Process updates, handling increment operations
-    const updateKeys = Object.keys(updates);
     const updateParts: string[] = [];
     const updateValues: unknown[] = [];
     let paramIndex = 1;
 
     for (const key of updateKeys) {
       const value = updates[key];
-      if (
-        value &&
-        typeof value === 'object' &&
-        'increment' in value &&
-        typeof (value as { increment: number }).increment === 'number'
-      ) {
+      if (isIncrementOperation(value)) {
         updateParts.push(`"${key}" = "${key}" + $${paramIndex}`);
-        updateValues.push((value as { increment: number }).increment);
+        updateValues.push(value.increment);
       } else {
         updateParts.push(`"${key}" = $${paramIndex}`);
         updateValues.push(value);
@@ -490,6 +511,8 @@ export class PostgresAdapter implements DatabaseAdapter {
 
   async delete(table: string, query: QueryCondition): Promise<void> {
     const keys = Object.keys(query);
+    this.validateIdentifiers(table, ...keys);
+    
     const values = Object.values(query);
     const conditions = keys.map((k, i) => `"${k}" = $${i + 1}`).join(' AND ');
     
@@ -502,6 +525,8 @@ export class PostgresAdapter implements DatabaseAdapter {
     query: QueryCondition
   ): Promise<T[]> {
     const keys = Object.keys(query);
+    this.validateIdentifiers(table, ...keys);
+    
     const values = Object.values(query);
     
     let sql = `SELECT * FROM "${table}"`;

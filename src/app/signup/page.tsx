@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AuthFormContainer from '@/components/AuthFormContainer';
 import { SignupSchema, type SignupFormData } from '@/lib/auth-schemas';
 import { Eye, EyeOff, Lock, Mail, User, Loader2 } from 'lucide-react';
-import { supabaseClient, isSupabaseConfigured } from '@/lib/supabase-client';
+import { supabaseClient } from '@/lib/supabase-client';
 
 export default function SignupPage() {
   const { toast } = useToast();
@@ -41,7 +41,7 @@ export default function SignupPage() {
     
     try {
       // Check if Supabase is configured
-      if (!isSupabaseConfigured() || !supabaseClient) {
+      if (!supabaseClient) {
         throw new Error('Authentication service is not configured. Please contact support.');
       }
 

@@ -1,5 +1,5 @@
 // DeafAUTH PASETO Token Support
-// Platform-Agnostic SEcurity TOkens for Deaf-first authentication
+// Platform-Agnostic Security Tokens for Deaf-first authentication
 // Reference: https://github.com/paragonie/paseto
 // Implementation aligned with mbtq-dev/templates/deafauth blueprint
 

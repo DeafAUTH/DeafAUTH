@@ -57,7 +57,7 @@ export {
   createDatabaseAdapter,
 } from './adapters/database-adapters';
 
-// PASETO Token Support (Platform-Agnostic SEcurity TOkens)
+// PASETO Token Support (Platform-Agnostic Security Tokens)
 // Reference: https://github.com/paragonie/paseto
 export {
   createMockPasetoHandler,

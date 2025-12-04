@@ -6,7 +6,7 @@ A script-first, modular SDK for building Deaf-first authentication experiences. 
 
 ## 🔐 PASETO Token Support
 
-DeafAUTH uses [PASETO (Platform-Agnostic SEcurity TOkens)](https://github.com/paragonie/paseto) for secure authentication—a more secure alternative to JWT that eliminates common cryptographic pitfalls.
+DeafAUTH uses [PASETO (Platform-Agnostic Security Tokens)](https://github.com/paragonie/paseto) for secure authentication—a more secure alternative to JWT that eliminates common cryptographic pitfalls.
 
 ```typescript
 import { createMockPasetoHandler } from '@/lib/deafauth-core';

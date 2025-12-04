@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AuthFormContainer from '@/components/AuthFormContainer';
 import { LoginSchema, type LoginFormData } from '@/lib/auth-schemas';
 import { Eye, EyeOff, Lock, Mail, Loader2, Video } from 'lucide-react';
+import { supabaseClient, isSupabaseConfigured } from '@/lib/supabase-client';
 
 export default function LoginPage() {
   const { toast } = useToast();
@@ -60,17 +61,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/deafauth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      // Check if Supabase is configured
+      if (!isSupabaseConfigured() || !supabaseClient) {
+        throw new Error('Authentication service is not configured. Please contact support.');
+      }
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        // Use message from API response if available
-        throw new Error(result.message || 'An unknown error occurred.');
+      if (error) {
+        throw new Error(error.message);
       }
 
       toast({

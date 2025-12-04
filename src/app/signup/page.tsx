@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AuthFormContainer from '@/components/AuthFormContainer';
 import { SignupSchema, type SignupFormData } from '@/lib/auth-schemas';
 import { Eye, EyeOff, Lock, Mail, User, Loader2 } from 'lucide-react';
+import { supabaseClient, isSupabaseConfigured } from '@/lib/supabase-client';
 
 export default function SignupPage() {
   const { toast } = useToast();
@@ -39,25 +40,35 @@ export default function SignupPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/deafauth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'An unknown error occurred.');
+      // Check if Supabase is configured
+      if (!isSupabaseConfigured() || !supabaseClient) {
+        throw new Error('Authentication service is not configured. Please contact support.');
       }
 
-      toast({
-        title: 'Account Created!',
-        description: `Welcome, ${data.name}! You can now log in.`,
-        variant: 'default',
+      const { data: authData, error } = await supabaseClient.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.name,
+          },
+        },
       });
-      // In a real app, you might auto-login or redirect to login
-      form.reset();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (authData.user) {
+        toast({
+          title: 'Account Created!',
+          description: `Welcome, ${data.name}! Please check your email to confirm.`,
+          variant: 'default',
+        });
+        form.reset();
+      } else {
+        throw new Error('An unexpected error occurred during sign up.');
+      }
 
     } catch (error) {
        const errorMessage = error instanceof Error ? error.message : 'Sign up failed. Please try again.';

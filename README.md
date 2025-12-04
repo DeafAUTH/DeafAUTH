@@ -28,12 +28,41 @@ npm install
 ## Scripts
 
 - `npm run dev`: Start the development server.
-- `npm run build`: Build the production application.
+- `npm run build`: Build the production application (outputs static files to `out/` folder).
 - `npm run start`: Start the production server.
 - `npm run lint`: Run ESLint to check code quality.
 - `npm test`: Run the test suite.
 - `npm run test:watch`: Run tests in watch mode.
 - `npm run test:coverage`: Run tests with coverage report.
+
+## Deployment
+
+### GitHub Pages
+
+The project is configured for automatic deployment to GitHub Pages.
+
+1. **Set up repository secrets** (Settings → Secrets and variables → Actions):
+   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+2. **Enable GitHub Pages** (Settings → Pages):
+   - Source: GitHub Actions
+
+3. **Push to main branch** - The deployment workflow will automatically:
+   - Build the static site
+   - Deploy to GitHub Pages
+
+Your site will be available at: `https://deafauth.github.io/deafauth/`
+
+### Manual Build
+
+To build the static site locally:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_url NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key npm run build
+```
+
+The output will be in the `out/` folder.
 
 ## Development
 

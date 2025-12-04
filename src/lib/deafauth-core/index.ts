@@ -54,3 +54,58 @@ export {
   PostgresAdapter,
   createDatabaseAdapter,
 } from './adapters/database-adapters';
+
+// Security module
+export {
+  ApiKeyManager,
+  AccessControlManager,
+  RateLimiter,
+  createRateLimiter,
+  createRateLimitMiddleware,
+  RATE_LIMIT_PRESETS,
+  ScopeManager,
+  createScopeManager,
+  DEFAULT_SCOPES,
+  TokenManager,
+  createPasetoTokenManager,
+  createJwtTokenManager,
+} from './security';
+
+// Security types
+export type {
+  ApiKey,
+  ApiKeyStatus,
+  CreateApiKeyParams,
+  ApiKeyValidationResult,
+  OAuth2Scope,
+  ScopeCategory,
+  SensitivityLevel,
+  Permission,
+  PermissionAction,
+  PermissionCondition,
+  ThirdPartyApp,
+  AppStatus,
+  AccessGrant,
+  AuthorizationRequest,
+  AuthorizationResponse,
+  RateLimitConfig,
+  RateLimitInfo,
+  RateLimitResult,
+  SecurityEvent,
+  SecurityEventType,
+  SecurityActor,
+  SecurityTarget,
+  SecurityConfig,
+  TokenFormat,
+} from './security/types';
+
+// Token manager types
+export type {
+  TokenPayload,
+  TokenResult,
+  TokenValidationResult,
+  TokenManagerConfig,
+} from './security/token-manager';
+
+// Integration snippets (for documentation/examples)
+export * as snippets from './snippets';

@@ -379,3 +379,238 @@ npm test
 ## License
 
 MIT
+
+## Security Module
+
+DeafAUTH includes a comprehensive security module for third-party access control, API key management, OAuth2 scopes, and rate limiting.
+
+### Token Management (PASETO / JWT)
+
+DeafAUTH uses **PASETO (Platform-Agnostic Security Tokens)** as the default token format, with JWT available as an optional alternative. PASETO provides secure-by-default tokens without the cryptographic pitfalls of JWT.
+
+```typescript
+import { TokenManager, createPasetoTokenManager, createJwtTokenManager } from '@/lib/deafauth-core/security';
+
+// PASETO tokens (default - recommended)
+const pasetoManager = new TokenManager({
+  secretKey: process.env.DEAFAUTH_SECRET_KEY,
+  issuer: 'deafauth.io',
+});
+
+// Generate PASETO access token
+const { token, expiresAt } = await pasetoManager.generateAccessToken({
+  sub: 'user_123',
+  scopes: ['profile:read', 'preferences:read'],
+});
+// Token format: v4.local.xxxxx...
+
+// Validate token
+const result = await pasetoManager.validateToken(token);
+if (result.valid) {
+  console.log('User ID:', result.payload.sub);
+  console.log('Scopes:', result.payload.scopes);
+}
+
+// JWT tokens (optional alternative)
+const jwtManager = new TokenManager({
+  format: 'jwt',
+  secretKey: process.env.DEAFAUTH_SECRET_KEY,
+});
+
+const { token: jwtToken } = await jwtManager.generateAccessToken({
+  sub: 'user_123',
+  scopes: ['profile:read'],
+});
+// Token format: eyJhbGc...
+```
+
+**Why PASETO over JWT?**
+- **Secure by default**: No algorithm confusion attacks
+- **Versioned protocol**: Each version is a complete specification
+- **Authenticated encryption**: v4.local uses AES-256-GCM
+- **No footguns**: Removes dangerous JWT features
+
+### API Key Management
+
+```typescript
+import { ApiKeyManager } from '@/lib/deafauth-core/security';
+
+const apiKeyManager = new ApiKeyManager(dbAdapter, {
+  apiKeyPrefix: 'dak_',
+  apiKeyLength: 32,
+});
+
+// Create a new API key
+const { key, apiKey } = await apiKeyManager.createApiKey({
+  name: 'My App API Key',
+  clientId: 'client_123',
+  scopes: ['profile:read', 'preferences:read'],
+  expiresIn: 86400, // 24 hours
+});
+
+// Validate an API key
+const result = await apiKeyManager.validateApiKey(key);
+if (result.valid) {
+  console.log('Valid key with scopes:', result.key.scopes);
+}
+
+// Check if key has required scopes
+if (apiKeyManager.hasScopes(apiKey, ['profile:read'])) {
+  // Allow access
+}
+```
+
+### Third-Party Access Control
+
+Access control uses PASETO tokens by default. You can configure JWT as an alternative.
+
+```typescript
+import { AccessControlManager } from '@/lib/deafauth-core/security';
+
+// Default: PASETO tokens
+const accessControl = new AccessControlManager(dbAdapter);
+
+// Or use JWT tokens
+const accessControlJwt = new AccessControlManager(dbAdapter, {
+  tokenFormat: 'jwt',
+  tokenSecretKey: process.env.DEAFAUTH_SECRET_KEY,
+});
+
+// Register a third-party app
+const app = await accessControl.registerApp({
+  name: 'My Third-Party App',
+  ownerId: 'user_123',
+  redirectUris: ['https://myapp.com/callback'],
+  allowedScopes: ['profile:read', 'preferences:read'],
+});
+
+// Process OAuth2 authorization
+const authResponse = await accessControl.authorize({
+  clientId: app.clientId,
+  redirectUri: 'https://myapp.com/callback',
+  scopes: ['profile:read'],
+  state: 'random_state',
+  responseType: 'code',
+}, userId);
+
+// Exchange authorization code for PASETO tokens
+const tokens = await accessControl.exchangeCode(
+  authCode,
+  app.clientId,
+  app.clientSecret
+);
+
+// Validate access token (PASETO or JWT)
+const validation = await accessControl.validateAccessToken(accessToken);
+```
+
+### OAuth2 Scopes
+
+```typescript
+import { ScopeManager, DEFAULT_SCOPES } from '@/lib/deafauth-core/security';
+
+const scopeManager = new ScopeManager();
+
+// Validate requested scopes
+const validation = scopeManager.validateScopes(['profile:read', 'identity:read']);
+console.log('Valid:', validation.valid);
+console.log('Sensitive scopes:', validation.sensitiveScopes);
+
+// Check permissions
+if (scopeManager.hasPermission(['profile:read'], 'profile', 'read')) {
+  // Allow access
+}
+
+// Filter to allowed scopes
+const allowed = scopeManager.filterAllowedScopes(
+  ['profile:read', 'admin:write'],
+  ['profile:*', 'preferences:*']
+);
+```
+
+**Available Scopes:**
+
+| Scope | Description | Category | Sensitivity |
+|-------|-------------|----------|-------------|
+| `profile:read` | Read basic profile information | profile | protected |
+| `profile:write` | Update profile information | profile | protected |
+| `identity:read` | Read Deaf identity status | identity | sensitive |
+| `identity:verify` | Check if user is verified | identity | protected |
+| `preferences:read` | Read accessibility preferences | preferences | protected |
+| `preferences:write` | Update accessibility preferences | preferences | protected |
+| `validation:read` | Read validation history | validation | sensitive |
+| `validation:submit` | Submit community validations | validation | restricted |
+| `openid` | OpenID Connect identity token | readonly | public |
+| `email` | Email address access | profile | protected |
+| `admin:read` | Administrative read access | admin | restricted |
+| `admin:write` | Full administrative access | admin | restricted |
+
+### Rate Limiting
+
+```typescript
+import { RateLimiter, RATE_LIMIT_PRESETS } from '@/lib/deafauth-core/security';
+
+// Create rate limiter with custom config
+const rateLimiter = new RateLimiter({
+  windowMs: 60000,    // 1 minute
+  maxRequests: 100,   // 100 requests per minute
+});
+
+// Or use a preset
+const strictLimiter = new RateLimiter(RATE_LIMIT_PRESETS.strict);  // 10/min
+const standardLimiter = new RateLimiter(RATE_LIMIT_PRESETS.standard);  // 100/min
+
+// Check if request is allowed
+const result = await rateLimiter.check('user_123');
+if (!result.allowed) {
+  console.log('Rate limit exceeded, retry after:', result.info.retryAfter);
+}
+
+// Get rate limit info
+const info = rateLimiter.getInfo('user_123');
+console.log(`${info.remaining}/${info.limit} requests remaining`);
+```
+
+**Rate Limit Presets:**
+
+| Preset | Limit | Use Case |
+|--------|-------|----------|
+| `strict` | 10/min | Login, sensitive endpoints |
+| `standard` | 100/min | General API endpoints |
+| `relaxed` | 1000/min | High-traffic public endpoints |
+| `burst` | 20/sec | Endpoints needing burst capacity |
+| `daily` | 10000/day | Quota-based access |
+
+## Integration Snippets
+
+DeafAUTH provides ready-to-use code snippets for common integration scenarios:
+
+```typescript
+import { snippets } from '@/lib/deafauth-core';
+
+// Access React integration examples
+console.log(snippets.USE_DEAF_AUTH_HOOK);
+console.log(snippets.ACCESSIBILITY_PREFERENCES_FORM);
+console.log(snippets.PROTECTED_ROUTE_COMPONENT);
+
+// Access Next.js integration examples
+console.log(snippets.NEXTJS_API_ROUTE);
+console.log(snippets.NEXTJS_MIDDLEWARE);
+console.log(snippets.NEXTJS_SERVER_ACTIONS);
+
+// Access Express.js integration examples
+console.log(snippets.EXPRESS_ROUTER);
+console.log(snippets.EXPRESS_SECURITY_MIDDLEWARE);
+
+// Access API usage examples
+console.log(snippets.API_CLIENT);
+console.log(snippets.OAUTH2_FLOWS);
+console.log(snippets.WEBHOOK_INTEGRATION);
+```
+
+These snippets provide complete, production-ready code for:
+- React hooks and components
+- Next.js API routes and middleware
+- Express.js routers and middleware
+- OAuth2 client implementation
+- Webhook handling

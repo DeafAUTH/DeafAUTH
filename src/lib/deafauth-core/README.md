@@ -21,7 +21,7 @@ DeafAUTH is not trying to compete with other auth systems—it's purpose-built f
 ✅ **Works with ANY framework:** React, Vue, Svelte, vanilla JS, Node.js  
 ✅ **No database? No problem:** Auto-falls back to localStorage, works offline-first  
 ✅ **Switch providers anytime:** Change Auth0 → Firebase in 1 line  
-✅ **PASETO Token Support:** Secure Platform-Agnostic SEcurity TOkens (reference: [paragonie/paseto](https://github.com/paragonie/paseto))  
+✅ **PASETO Token Support:** Secure Platform-Agnostic Security Tokens (reference: [paragonie/paseto](https://github.com/paragonie/paseto))  
 
 ## Quick Start
 
@@ -385,7 +385,7 @@ When using a database adapter, DeafAUTH expects these tables/collections:
 
 ## PASETO Token Support
 
-DeafAUTH includes support for [PASETO (Platform-Agnostic SEcurity TOkens)](https://github.com/paragonie/paseto), a more secure alternative to JWT that eliminates common cryptographic pitfalls.
+DeafAUTH includes support for [PASETO (Platform-Agnostic Security Tokens)](https://github.com/paragonie/paseto), a more secure alternative to JWT that eliminates common cryptographic pitfalls.
 
 ### Why PASETO?
 

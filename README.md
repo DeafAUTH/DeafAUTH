@@ -1,120 +1,189 @@
-# DeafAuth SDK
+# DeafAuth - Flask Authentication Template
 
-A script-first, modular SDK for building Deaf-first authentication experiences.
+A lightweight, modular Flask-based authentication system template designed for quick project starts.
 
-## Core Features
+This template uses **PASETO (Platform-Agnostic SEcurity TOkens)** for authentication, a more secure alternative to JWT that eliminates common cryptographic pitfalls. Learn more at [https://paseto.io](https://paseto.io).
 
-- **Visual-first Login**: Methods for authentication that prioritize visual confirmation.
-- **Community Verification**: Logic for validating users through community trust.
-- **Firebase Integration**: A lightweight adapter for Firebase Authentication.
+## Features
 
-## Installation
+- **User Signup**: Register new users with email and password
+- **Email Verification**: Basic email verification mechanism
+- **Secure Login**: Password hashing with Werkzeug
+- **PASETO Tokens**: Stateless authentication with PASETO (Platform-Agnostic SEcurity TOkens)
+- **Protected Routes**: Decorator-based route protection
+- **SQLite Database**: Built-in SQLite support (easily adaptable to PostgreSQL, MySQL, etc.)
+- **CORS Enabled**: Works with any frontend framework
 
-```bash
-npm install
+## Structure
+
+```
+deafauth/
+├── app.py                 # Main Flask application entry point
+├── deafauth/              # Authentication blueprint module
+│   ├── __init__.py       # Blueprint initialization
+│   ├── routes.py         # API endpoints (signup, login, verify)
+│   ├── models.py         # User database model
+│   └── auth.py           # PASETO token handling and decorators
+├── static/               # Static files (CSS, JS)
+├── templates/            # HTML templates
+├── tests/                # Test suite
+└── requirements.txt      # Python dependencies
 ```
 
-## Environment Setup
+## Quick Start
 
-1. Copy the `.env.example` file to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Fill in your Supabase credentials in the `.env` file:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-
-## Scripts
-
-- `npm run dev`: Start the development server.
-- `npm run build`: Build the production application (outputs static files to `out/` folder).
-- `npm run start`: Start the production server.
-- `npm run lint`: Run ESLint to check code quality.
-- `npm test`: Run the test suite.
-- `npm run test:watch`: Run tests in watch mode.
-- `npm run test:coverage`: Run tests with coverage report.
-
-## Deployment
-
-### GitHub Pages
-
-The project is configured for automatic deployment to GitHub Pages.
-
-1. **Set up repository secrets** (Settings → Secrets and variables → Actions):
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-
-2. **Enable GitHub Pages** (Settings → Pages):
-   - Source: GitHub Actions
-
-3. **Push to main branch** - The deployment workflow will automatically:
-   - Build the static site
-   - Deploy to GitHub Pages
-
-Your site will be available at: `https://deafauth.github.io/deafauth/`
-
-### Manual Build
-
-To build the static site locally:
+### 1. Installation
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_url NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key npm run build
+# Clone the repository
+git clone https://github.com/deafauth/deafauth.git
+cd deafauth
+
+# Create a virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-The output will be in the `out/` folder.
+### 2. Configuration
 
-## Development
+Set environment variables (optional):
 
-### Running Tests
+```bash
+# Set a secret key for PASETO tokens (REQUIRED in production)
+export SECRET_KEY="your-secret-key-here"
 
-The project uses Jest and React Testing Library for testing. To run tests:
+# Set database URL (defaults to SQLite)
+export DATABASE_URL="sqlite:///deafauth.db"
+
+# Set Flask environment
+export FLASK_ENV="development"
+```
+
+### 3. Run the Application
+
+```bash
+# Run the development server
+python app.py
+```
+
+The server will start on `http://localhost:5000`
+
+## API Endpoints
+
+### Health Check
+```
+GET /auth/health
+```
+Returns service status.
+
+### User Signup
+```
+POST /auth/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
+
+### Email Verification
+```
+GET /auth/verify/<verification_token>
+```
+
+### User Login
+```
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
+
+Returns a PASETO token (starts with `v4.local.`).
+
+### Get Current User (Protected)
+```
+GET /auth/me
+Authorization: Bearer <token>
+```
+
+## Usage in Your Application
+
+### Protecting Routes
+
+Use the `@token_required` decorator to protect routes:
+
+```python
+from deafauth.auth import token_required
+
+@app.route('/protected')
+@token_required
+def protected_route(user_id):
+    # user_id is automatically passed by the decorator
+    return jsonify({'message': f'Hello user {user_id}!'})
+```
+
+## Why PASETO?
+
+PASETO (Platform-Agnostic SEcurity TOkens) offers several advantages over JWT:
+
+- **Secure by default**: No algorithm selection attacks
+- **Versioned protocol**: Each version is a complete specification
+- **No footguns**: Removes dangerous features that cause JWT vulnerabilities
+- **Built-in encryption**: v4.local provides authenticated encryption
+
+Learn more: [https://paseto.io](https://paseto.io)
+
+## Testing
 
 ```bash
 # Run all tests
-npm test
+pytest tests/ -v
 
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
+# Run with coverage
+pytest tests/ -v --cov=deafauth
 ```
 
-### Continuous Integration
+## Docker Deployment
 
-The project includes automated CI/CD pipelines that run on every push and pull request:
+```bash
+# Build the image
+docker build -t deafauth .
 
-- **Lint Check**: Ensures code quality with ESLint
-- **Tests**: Runs all unit tests
-- **Build**: Validates the application builds successfully
-- **Type Check**: Validates TypeScript types
-- **Docker Build**: Tests Docker container build
-
-All checks must pass before merging code.
-
-📖 **[View Complete DevOps Documentation](docs/DEVOPS.md)**
-
-## Example Usage
-
-```typescript
-import { initDeafAuth, loginWithVisual, verifyCommunity } from '@mbtq/deafauth-sdk';
-
-// Initialize with your Firebase config
-initDeafAuth({
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  // ...
-});
-
-async function authenticate() {
-  const user = await loginWithVisual(); // Placeholder for visual auth flow
-  if (user) {
-    const isVerified = await verifyCommunity(user.uid); // Placeholder for community check
-    if (isVerified) {
-      console.log("Access granted 🎉");
-    }
-  }
-}
+# Run the container
+docker run -p 8000:8000 -e SECRET_KEY=your-secret deafauth
 ```
+
+## Production Deployment
+
+```bash
+# Install Gunicorn
+pip install gunicorn
+
+# Run with 4 worker processes
+gunicorn -w 4 -b 0.0.0.0:8000 "app:create_app()"
+```
+
+## Security Considerations
+
+⚠️ **Important for Production:**
+
+1. **Secret Key**: Set a strong `SECRET_KEY` environment variable
+2. **HTTPS**: Use HTTPS in production to protect tokens in transit
+3. **Database**: Use PostgreSQL or MySQL instead of SQLite
+4. **Rate Limiting**: Implement rate limiting for signup/login endpoints
+
+## License
+
+This template is provided as-is for use in your projects.
+
+## Version
+
+**DeafAuth v0.1** - Initial release with basic authentication features.

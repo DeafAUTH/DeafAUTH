@@ -21,29 +21,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build with Next.js
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_BASE_PATH: ''
-        run: npm run build
-
-      - name: Add .nojekyll file
-        run: touch out/.nojekyll
+      - name: Build static site
+        run: |
+          mkdir -p _site
+          cp -r templates/* _site/
+          cp -r static _site/
+          # Create index.html at root
+          mv _site/index.html _site/index.html.tmp || true
+          mv _site/index.html.tmp _site/index.html || true
+          # Add .nojekyll to prevent Jekyll processing
+          touch _site/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./_site
 
   deploy:
     environment:

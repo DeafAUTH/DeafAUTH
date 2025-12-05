@@ -17,13 +17,19 @@ const paseto = createMockPasetoHandler({
 });
 
 // Generate token with Deaf-specific claims
-const token = await paseto.generateToken({
+const result = await paseto.generateToken({
   sub: user.id,
   email: user.email,
   deafStatus: 'deaf',
   validated: true,
   pinkSyncEnabled: true,
 });
+
+// Access the token string
+if (result.success) {
+  console.log('Token:', result.token);
+  // Token format: v4.local.mock.{base64-payload}
+}
 ```
 
 ## 🚀 Universal Adapter Layer

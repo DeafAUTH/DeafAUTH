@@ -1,6 +1,6 @@
 # Archived Files
 
-This directory contains archived documentation, concept files, and reference materials for the broader MBTQ ecosystem. These files are kept for reference but are not part of the core DeafAuth SDK implementation.
+This directory contains archived documentation, concept files, and reference materials for the broader MBTQ ecosystem. These files are kept for reference but are not part of the core DeafAUTH SDK implementation.
 
 ## Purpose
 
@@ -36,7 +36,7 @@ DeafAUTH (Identity Cortex) serves as the authentication foundation that enables 
 
 ## Core DeafAUTH Focus
 
-The active DeafAuth SDK (in `/src`) focuses on:
+The active DeafAUTH SDK (in `/src`) focuses on:
 - Deaf-first authentication using PASETO tokens (reference: [paragonie/paseto](https://github.com/paragonie/paseto))
 - ASL video verification
 - Community validation

@@ -2,11 +2,41 @@
 
 A script-first, modular SDK for building Deaf-first authentication experiences.
 
+## 🚀 NEW: Universal Adapter Layer
+
+DeafAUTH now includes a **framework-agnostic, plug-and-play** adapter layer that works with ANY auth provider, ANY database, and ANY framework. Deploy in under 5 minutes!
+
+```typescript
+import { DeafAUTH, Auth0Adapter, SupabaseAdapter } from '@/lib/deafauth-core';
+
+// Plug in YOUR stack
+const deafAuth = new DeafAUTH({
+  authAdapter: new Auth0Adapter(AUTH0_DOMAIN, AUTH0_CLIENT_ID),
+  dbAdapter: new SupabaseAdapter(supabase),
+});
+
+// Use immediately
+const result = await deafAuth.authenticate({
+  email: 'user@example.com',
+  password: 'password123'
+});
+```
+
+**Key Benefits:**
+- ✅ Works with **ANY auth provider**: Auth0, Firebase, Clerk, NextAuth, custom
+- ✅ Works with **ANY database**: Supabase, PostgreSQL, MongoDB, Firebase, MySQL
+- ✅ Works with **ANY framework**: React, Vue, Svelte, vanilla JS, Node.js
+- ✅ **No database? No problem**: Auto-falls back to localStorage
+- ✅ **Switch providers anytime**: Change Auth0 → Firebase in 1 line
+
+📖 **[View Universal Adapter Documentation](src/lib/deafauth-core/README.md)**
+
 ## Core Features
 
 - **Visual-first Login**: Methods for authentication that prioritize visual confirmation.
 - **Community Verification**: Logic for validating users through community trust.
-- **Firebase Integration**: A lightweight adapter for Firebase Authentication.
+- **Framework Agnostic**: Universal adapter layer for any auth/database combination.
+- **Deaf-first Profiles**: Built-in support for sign language preferences, accessibility needs, and identity validation.
 
 ## Installation
 
@@ -83,6 +113,16 @@ supabase functions deploy deafauth-verify --project-ref <project-ref>
 ```
 
 📖 **[View Edge Functions Documentation](supabase/functions/README.md)**
+
+### Runtime Compatibility
+
+DeafAUTH is designed to be runtime-agnostic and can be adapted to work with:
+
+- **Deno Fresh**: Server-rendered Preact with islands architecture
+- **Vite + React**: Fast build tool with full React compatibility
+- **Node.js/Next.js**: Current default configuration
+
+📖 **[View Runtime Compatibility Guide](docs/RUNTIME_COMPATIBILITY.md)**
 
 ## Example Usage
 

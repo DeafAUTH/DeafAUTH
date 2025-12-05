@@ -82,16 +82,15 @@ export const DEFAULT_PASETO_OPTIONS: Required<Pick<PasetoOptions, 'version' | 'p
  * mbtq-dev/templates/deafauth blueprint pattern.
  * 
  * Note: This is an interface definition. The actual implementation
- * requires the 'paseto' npm package to be installed. Use createPasetoHandler()
- * factory function to get a working implementation.
+ * requires the 'paseto' npm package to be installed. Use createMockPasetoHandler()
+ * factory function for testing/development.
  * 
  * @example
  * ```typescript
  * // Using the PASETO adapter with DeafAUTH
- * import { createPasetoHandler } from '@/lib/deafauth-core/paseto';
+ * import { createMockPasetoHandler } from '@/lib/deafauth-core/paseto';
  * 
- * const paseto = await createPasetoHandler({
- *   secretKey: process.env.PASETO_SECRET_KEY,
+ * const paseto = createMockPasetoHandler({
  *   issuer: 'deafauth.example.com',
  * });
  * 
@@ -102,6 +101,11 @@ export const DEFAULT_PASETO_OPTIONS: Required<Pick<PasetoOptions, 'version' | 'p
  *   deafStatus: profile.deafStatus,
  *   validated: profile.validated,
  * });
+ * 
+ * // Access the token
+ * if (tokenResult.success) {
+ *   console.log('Token:', tokenResult.token);
+ * }
  * 
  * // Verify token on protected routes
  * const verifyResult = await paseto.verifyToken(token);
@@ -153,9 +157,17 @@ export interface PasetoHandlerConfig {
 }
 
 /**
- * Create a mock PASETO handler for testing/development
- * This implementation uses base64-encoded JSON instead of actual PASETO encryption
- * Use createPasetoHandler() for production with the 'paseto' package
+ * Create a mock PASETO handler for testing/development.
+ * 
+ * ⚠️ **WARNING: THIS MOCK HANDLER PROVIDES NO CRYPTOGRAPHIC SECURITY.**
+ * 
+ * This implementation uses simple base64-encoded JSON instead of actual PASETO encryption.
+ * 
+ * **NEVER USE THIS FUNCTION IN PRODUCTION ENVIRONMENTS.**
+ * Doing so will expose your application to severe security vulnerabilities.
+ * 
+ * For production use, install the `paseto` npm package and implement a real
+ * PASETO handler following the specification at https://github.com/paseto-standard/paseto-spec
  */
 export function createMockPasetoHandler(config: PasetoHandlerConfig = {}): PasetoHandler {
   const defaultOptions = {
@@ -231,11 +243,18 @@ export function createMockPasetoHandler(config: PasetoHandlerConfig = {}): Paset
       }
 
       // Generate new token with same claims but new expiration
-      // Destructure to exclude iat and exp from new token
-      const { iat, exp, ...claims } = verifyResult.payload;
-      // Mark iat and exp as intentionally unused (needed for destructuring)
-      void iat;
-      void exp;
+      // Extract claims excluding iat and exp (they will be regenerated)
+      const payload = verifyResult.payload;
+      const claims: Omit<PasetoPayload, 'iat' | 'exp'> = {
+        sub: payload.sub,
+        iss: payload.iss,
+        aud: payload.aud,
+        email: payload.email,
+        name: payload.name,
+        deafStatus: payload.deafStatus,
+        validated: payload.validated,
+        pinkSyncEnabled: payload.pinkSyncEnabled,
+      };
       return this.generateToken(claims, options);
     },
   };

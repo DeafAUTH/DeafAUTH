@@ -243,18 +243,8 @@ export function createMockPasetoHandler(config: PasetoHandlerConfig = {}): Paset
       }
 
       // Generate new token with same claims but new expiration
-      // Extract claims excluding iat and exp (they will be regenerated)
-      const payload = verifyResult.payload;
-      const claims: Omit<PasetoPayload, 'iat' | 'exp'> = {
-        sub: payload.sub,
-        iss: payload.iss,
-        aud: payload.aud,
-        email: payload.email,
-        name: payload.name,
-        deafStatus: payload.deafStatus,
-        validated: payload.validated,
-        pinkSyncEnabled: payload.pinkSyncEnabled,
-      };
+      // Use destructuring to exclude iat and exp (they will be regenerated)
+      const { iat: _iat, exp: _exp, ...claims } = verifyResult.payload;
       return this.generateToken(claims, options);
     },
   };

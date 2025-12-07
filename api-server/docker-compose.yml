@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: deafauth-db
+    environment:
+      POSTGRES_DB: deafauth
+      POSTGRES_USER: deafuser
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - deafauth-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deafuser -d deafauth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # DeafAUTH API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: deafauth-api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://deafuser:changeme@db:5432/deafauth
+      PASETO_ISSUER: deafauth.io
+      PASETO_KEY_ID: key-1
+      ACCESS_TOKEN_TTL: 600
+      REFRESH_TOKEN_TTL: 2592000
+      ALLOWED_ORIGINS: "*"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - deafauth-net
+    volumes:
+      - ./api-server/keys:/app/keys:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:stable-alpine
+    container_name: deafauth-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - api
+    networks:
+      - deafauth-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  deafauth-net:
+    driver: bridge

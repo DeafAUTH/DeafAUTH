@@ -1,10 +1,40 @@
 # DeafAuth SDK
 
-A script-first, modular SDK for building Deaf-first authentication experiences.
+**Identity Cortex** — Gatekeeper and validation initial point for Deaf-first authentication.
 
-## 🚀 NEW: Universal Adapter Layer
+A script-first, modular SDK for building Deaf-first authentication experiences. DeafAUTH is purpose-built for Deaf users' accessibility accommodation and PinkSync integration.
 
-DeafAUTH now includes a **framework-agnostic, plug-and-play** adapter layer that works with ANY auth provider, ANY database, and ANY framework. Deploy in under 5 minutes!
+## 🔐 PASETO Token Support
+
+DeafAUTH uses [PASETO (Platform-Agnostic Security Tokens)](https://github.com/paragonie/paseto) for secure authentication—a more secure alternative to JWT that eliminates common cryptographic pitfalls.
+
+```typescript
+import { createMockPasetoHandler } from '@/lib/deafauth-core';
+
+// Create PASETO handler for token management
+const paseto = createMockPasetoHandler({
+  issuer: 'deafauth.example.com',
+});
+
+// Generate token with Deaf-specific claims
+const result = await paseto.generateToken({
+  sub: user.id,
+  email: user.email,
+  deafStatus: 'deaf',
+  validated: true,
+  pinkSyncEnabled: true,
+});
+
+// Access the token string
+if (result.success) {
+  console.log('Token:', result.token);
+  // Token format: v4.local.mock.{base64-payload}
+}
+```
+
+## 🚀 Universal Adapter Layer
+
+DeafAUTH includes a **framework-agnostic, plug-and-play** adapter layer that works with ANY auth provider, ANY database, and ANY framework. Deploy in under 5 minutes!
 
 ```typescript
 import { DeafAUTH, Auth0Adapter, SupabaseAdapter } from '@/lib/deafauth-core';
@@ -28,6 +58,8 @@ const result = await deafAuth.authenticate({
 - ✅ Works with **ANY framework**: React, Vue, Svelte, vanilla JS, Node.js
 - ✅ **No database? No problem**: Auto-falls back to localStorage
 - ✅ **Switch providers anytime**: Change Auth0 → Firebase in 1 line
+- ✅ **PASETO tokens**: Secure, modern token format (reference: [paragonie/paseto](https://github.com/paragonie/paseto))
+- ✅ **PinkSync ready**: Built-in integration points for accessibility automation
 
 📖 **[View Universal Adapter Documentation](src/lib/deafauth-core/README.md)**
 

@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deafauth.io/schemas/deafauth.schema.json",
+  "title": "DeafAUTH Universal Schema",
+  "description": "Universal authentication schema for Deaf-first accessible authentication",
+  "type": "object",
+  "required": ["version", "providers", "methods", "accessibility"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "examples": ["1.0", "1.0.0"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the authentication configuration",
+      "maxLength": 100
+    },
+    "providers": {
+      "type": "array",
+      "description": "Authentication providers to use",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["deafauth", "oauth2", "saml", "openid", "firebase", "auth0", "okta"],
+            "description": "Type of authentication provider"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the provider"
+          },
+          "enhanced_with": {
+            "type": "string",
+            "enum": ["deafauth"],
+            "description": "Enhancement layer to apply"
+          },
+          "config": {
+            "type": "object",
+            "description": "Provider-specific configuration"
+          }
+        }
+      }
+    },
+    "methods": {
+      "type": "array",
+      "description": "Primary authentication methods",
+      "items": {
+        "type": "string",
+        "enum": ["visual", "biometric", "passkey", "qr", "sms", "email", "video"]
+      },
+      "default": ["visual", "biometric", "passkey"]
+    },
+    "fallbacks": {
+      "type": "array",
+      "description": "Fallback authentication methods",
+      "items": {
+        "type": "string",
+        "enum": ["visual", "biometric", "passkey", "qr", "sms", "email", "video"]
+      },
+      "default": ["email", "video"]
+    },
+    "accessibility": {
+      "type": "object",
+      "description": "Accessibility configuration",
+      "required": ["asl_support", "visual_cues"],
+      "properties": {
+        "asl_support": {
+          "type": "boolean",
+          "description": "Enable ASL (American Sign Language) verification support",
+          "default": true
+        },
+        "visual_cues": {
+          "type": "boolean",
+          "description": "Enable visual cues and feedback",
+          "default": true
+        },
+        "time_flexible": {
+          "type": "boolean",
+          "description": "Enable extended time limits for authentication",
+          "default": true
+        },
+        "time_extension_seconds": {
+          "type": "integer",
+          "description": "Extended time limit in seconds",
+          "minimum": 60,
+          "maximum": 600,
+          "default": 300
+        },
+        "no_audio_dependencies": {
+          "type": "boolean",
+          "description": "Ensure no audio is required for authentication",
+          "default": true
+        }
+      }
+    },
+    "compilation": {
+      "type": "object",
+      "description": "Compilation settings",
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["react", "vue", "angular", "web-component", "api", "cli"],
+          "description": "Target framework for code generation"
+        },
+        "output": {
+          "type": "string",
+          "description": "Output file path"
+        },
+        "minify": {
+          "type": "boolean",
+          "description": "Minify the output code",
+          "default": false
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": "1.0",
+      "name": "Company SSO with DeafAUTH",
+      "providers": [
+        {
+          "type": "oauth2",
+          "name": "google",
+          "enhanced_with": "deafauth"
+        },
+        {
+          "type": "saml",
+          "name": "okta",
+          "enhanced_with": "deafauth"
+        }
+      ],
+      "methods": ["visual", "biometric", "passkey"],
+      "fallbacks": ["email", "video"],
+      "accessibility": {
+        "asl_support": true,
+        "visual_cues": true,
+        "time_flexible": true,
+        "time_extension_seconds": 300,
+        "no_audio_dependencies": true
+      },
+      "compilation": {
+        "target": "react",
+        "output": "src/auth/DeafEnhancedAuth.tsx"
+      }
+    }
+  ]
+}

@@ -246,8 +246,8 @@ MIT License - Use freely, attribute appropriately
 
 ## 🔗 Links
 
-- **Website:** [deafauth.io](https://deafauth.mbtq.dev)
-- **API Docs:** [api.deafauth.io/docs](https://api.deafauth.mbtq.dev/docs)
+- **Website:** [deafauth.mbtq.dev](https://deafauth.mbtq.dev)
+- **API Docs:** [api.deafauth.mbtq.dev/docs](https://api.deafauth.mbtq.dev/docs)
 - **Community:** [discord.gg/deafauth](https://discord.gg/deafauth)
 - **Email:** deafauth@mbtq.dev
 
@@ -704,7 +704,7 @@ npm run test:integration
 
 ## 📄 License
 
-MIT License
+APACHE License
 
 ---
 
@@ -748,4 +748,5 @@ MIT License
 
 **Remember:** DeafAUTH is not about hearing people building "accessibility tools."  
 It's about Deaf identity, culture, and autonomy in digital spaces.
+
 

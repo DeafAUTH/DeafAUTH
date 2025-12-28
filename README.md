@@ -53,7 +53,7 @@ DeafAUTH is a **universal identity compiler** that aggregates authentication fro
 import { DeafAUTH } from '@deafauth/core';
 
 const deafauth = new DeafAUTH({
-  apiUrl: 'https://api.deafauth.io'
+  apiUrl: 'https://api.deafauth.mbtq.dev'
 });
 
 // Register with Deaf-first defaults
@@ -74,7 +74,7 @@ const user = await deafauth.register({
 ```python
 from deafauth import DeafAUTH
 
-deafauth = DeafAUTH(api_url='https://api.deafauth.io')
+deafauth = DeafAUTH(api_url='https://api.deafauth.mbtq.dev')
 
 user = deafauth.register(
     email='user@example.com',
@@ -85,7 +85,7 @@ user = deafauth.register(
 
 ### cURL (REST API)
 ```bash
-curl -X POST https://api.deafauth.io/v1/register \
+curl -X POST https://api.deafauth.mbtq.dev/v1/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -101,7 +101,7 @@ package main
 import "github.com/deafauth/go-sdk"
 
 func main() {
-    client := deafauth.NewClient("https://api.deafauth.io")
+    client := deafauth.NewClient("https://api.deafauth.mbtq.dev")
     
     user, err := client.Register(deafauth.RegisterParams{
         Email:    "user@example.com",
@@ -118,7 +118,7 @@ require 'vendor/autoload.php';
 
 use DeafAUTH\Client;
 
-$deafauth = new Client('https://api.deafauth.io');
+$deafauth = new Client('https://api.deafauth.mbtq.dev');
 
 $user = $deafauth->register([
     'email' => 'user@example.com',
@@ -131,7 +131,7 @@ $user = $deafauth->register([
 ```ruby
 require 'deafauth'
 
-client = DeafAUTH::Client.new(api_url: 'https://api.deafauth.io')
+client = DeafAUTH::Client.new(api_url: 'https://api.deafauth.mbtq.dev')
 
 user = client.register(
   email: 'user@example.com',
@@ -167,7 +167,7 @@ DELETE /v1/user/:id              # Delete identity
 
 ### OpenAPI Specification
 
-Full API docs: [api.deafauth.io/docs](https://api.deafauth.io/docs)
+Full API docs: [api.deafauth.mtbq.dev/docs](https://api.deafauth.mbtq.dev/docs)
 
 ---
 
@@ -216,7 +216,7 @@ Service C ─┘  (validates token
 | PHP | `deafauth/php-sdk` | `composer require deafauth/php-sdk` |
 | Ruby | `deafauth` | `gem install deafauth` |
 | Rust | `deafauth` | `cargo add deafauth` |
-| Java | `io.deafauth:sdk` | Maven/Gradle |
+| Java | `deafauth:sdk` | Maven/Gradle |
 
 ---
 
@@ -246,8 +246,8 @@ MIT License - Use freely, attribute appropriately
 
 ## 🔗 Links
 
-- **Website:** [deafauth.io](https://deafauth.io)
-- **API Docs:** [api.deafauth.io/docs](https://api.deafauth.io/docs)
+- **Website:** [deafauth.io](https://deafauth.mbtq.dev)
+- **API Docs:** [api.deafauth.io/docs](https://api.deafauth.mbtq.dev/docs)
 - **Community:** [discord.gg/deafauth](https://discord.gg/deafauth)
 - **Email:** deafauth@mbtq.dev
 
@@ -748,3 +748,4 @@ MIT License
 
 **Remember:** DeafAUTH is not about hearing people building "accessibility tools."  
 It's about Deaf identity, culture, and autonomy in digital spaces.
+

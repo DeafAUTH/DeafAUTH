@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import csurf from 'csurf';
 import { V4 } from 'paseto';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -32,6 +33,8 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+const csrfProtection = csurf({ cookie: true });
+app.use(csrfProtection);
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {

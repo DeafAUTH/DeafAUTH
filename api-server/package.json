@@ -28,7 +28,8 @@
     "knex": "^2.5.1",
     "uuid": "^9.0.0",
     "paseto": "^3.1.2",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "csurf": "^1.11.0"
   },
   "devDependencies": {
     "ts-node-dev": "^2.0.0",

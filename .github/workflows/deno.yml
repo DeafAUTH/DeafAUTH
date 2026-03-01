@@ -5,9 +5,12 @@ permissions:
 
 on:
   push:
-    branches: [main]
+    branches: ["deno"]
   pull_request:
-    branches: [main]
+    branches: ["deno"]
+
+permissions:
+  contents: read
 
 jobs:
   test:

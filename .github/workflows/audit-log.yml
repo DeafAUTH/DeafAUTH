@@ -1,5 +1,8 @@
 name: Audit Log Writer
 
+permissions:
+  contents: write
+
 # Default branch is 'master'. If your primary branch is 'main', replace 'master' with 'main' below.
 env:
   PRIMARY_BRANCH: master

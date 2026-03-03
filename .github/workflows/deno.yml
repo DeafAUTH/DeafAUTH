@@ -1,12 +1,7 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: test
 
-# This workflow will install Deno then run `deno lint` and `deno test`.
-# For more information see: https://github.com/denoland/setup-deno
-
-name: Deno
+permissions:
+  contents: read
 
 on:
   push:
@@ -19,24 +14,142 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        deno:
+          - "1.x"
+          - "2.x"
+          - "1.33.1"
+          - "canary"
+          - "~1.32"
+          - "b290fd01f3f5d32f9d010fc719ced0240759c049"
+          - "rc"
+          - "lts"
 
     steps:
-      - name: Setup repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Deno
-        # uses: denoland/setup-deno@v1
-        uses: denoland/setup-deno@61fe2df320078202e33d7d5ad347e7dcfa0e8f31  # v1.1.2
+        uses: ./
         with:
-          deno-version: v1.x
+          deno-version: ${{ matrix.deno }}
 
-      # Uncomment this step to verify the use of 'deno fmt' on each commit.
-      # - name: Verify formatting
-      #   run: deno fmt --check
+      - name: Test Deno
+        run: deno run https://deno.land/std@0.198.0/examples/welcome.ts
 
-      - name: Run linter
+      - name: Test `deno install -g` (2.0)
+        if: matrix.deno == 'canary' || matrix.deno == 'latest'
+        run: |
+          deno install -g --allow-net --no-config -n deno_curl https://deno.land/std@0.198.0/examples/curl.ts
+          deno_curl https://deno.land/std@0.198.0/examples/curl.ts
+
+      - name: Test `deno install (1.0)
+        if: matrix.deno == '1.x' || matrix.deno == '1.33.1' || matrix.deno == '~1.32' || matrix.deno == 'b290fd01f3f5d32f9d010fc719ced0240759c049'
+        run: |
+          deno install --allow-net --no-config -n deno_curl https://deno.land/std@0.198.0/examples/curl.ts
+          deno_curl https://deno.land/std@0.198.0/examples/curl.ts
+
+  test-version-file:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        deno-version-file: [.dvmrc, .tool-versions]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          deno-version-file: ${{ matrix.deno-version-file }}
+
+      - name: Check version
+        run: deno -V | grep -q "deno 1\.43\.1"
+
+  test-binary-name:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          deno-binary-name: deno_foo
+
+      - name: Check binary exists
+        run: deno_foo -V
+
+  test-setup-cache:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          cache: true
+
+      - name: Download dependencies for cache
+        run: deno install --global --no-config npm:cowsay@1.6.0
+
+  test-cache:
+    needs: test-setup-cache
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          cache: true
+
+      - name: Run with cached dependencies
+        run: deno run --cached-only --no-config -RE npm:cowsay@1.6.0 "It works!"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          deno-version: canary
+
+      - name: Lint
         run: deno lint
 
-      - name: Run tests
-        run: deno test -A
+      - name: Format
+        run: deno fmt --check
+
+      - name: Check types
+        run: deno check src/main.ts
+
+  build-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Deno
+        uses: ./
+        with:
+          deno-version: canary
+
+      - name: Build code
+        run: deno run -A scripts/build.ts
+
+      - name: Assert no git changes (run `deno task build` if this fails)
+        run: git diff --quiet

@@ -1,0 +1,162 @@
+name: Audit Log Writer
+
+permissions:
+  contents: write
+
+# Default branch is 'master'. If your primary branch is 'main', replace 'master' with 'main' below.
+env:
+  PRIMARY_BRANCH: master
+  AUDIT_FILE: .github/AUDIT_LOG.md
+  COMMIT_NAME: "github-actions[bot]"
+  COMMIT_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
+
+on:
+  push:
+    branches:
+      - ${{ env.PRIMARY_BRANCH }}
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Custom audit message (required for manual audit entries)'
+        required: false
+        default: ''
+      files_changed:
+        description: 'Optional list/short summary of changed files (comma-separated)'
+        required: false
+        default: ''
+
+jobs:
+  append-audit:
+    name: Append audit entry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine trigger context
+        id: meta
+        run: |
+          echo "actor=${GITHUB_ACTOR}" >> $GITHUB_OUTPUT
+          echo "event=${GITHUB_EVENT_NAME}" >> $GITHUB_OUTPUT
+          # For PR: get merged status and number
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            PR_MERGED=$(jq -r .pull_request.merged < $GITHUB_EVENT_PATH)
+            PR_NUMBER=$(jq -r .number < $GITHUB_EVENT_PATH)
+            echo "pr_merged=${PR_MERGED}" >> $GITHUB_OUTPUT
+            echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "ref_branch=$(jq -r .pull_request.base.ref < $GITHUB_EVENT_PATH)" >> $GITHUB_OUTPUT
+            COMMIT_SHA=$(jq -r .pull_request.merge_commit_sha < $GITHUB_EVENT_PATH)
+            echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          else
+            echo "pr_merged=false" >> $GITHUB_OUTPUT
+            echo "pr_number=" >> $GITHUB_OUTPUT
+            echo "ref_branch=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+            echo "commit_sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check relevant event (skip if PR closed but not merged)
+        if: ${{ github.event_name == 'pull_request' && steps.meta.outputs.pr_merged != 'true' }}
+        run: |
+          echo "Pull request closed without merge; skipping audit entry."
+          exit 0
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 2
+
+      - name: Build audit entry
+        id: build
+        run: |
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          ACTOR="${GITHUB_ACTOR}"
+          TRIGGER="${GITHUB_EVENT_NAME}"
+          BRANCH="${{ steps.meta.outputs.ref_branch }}"
+          COMMIT="${{ steps.meta.outputs.commit_sha }}"
+          PRNUM="${{ steps.meta.outputs.pr_number }}"
+          # changed files: if push event, get list; if manual, use input; if PR, get files from event via API
+          FILES_SUMMARY=""
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            FILES=$(git diff --name-only $COMMIT^ $COMMIT 2>/dev/null || git show --name-only --pretty="" $COMMIT)
+            # compress into JSON-like list
+            FILES_SUMMARY=$(printf '%s\n' "$FILES" | jq -R -s -c 'split("\n")[:-1]')
+          elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            if [ -n "${{ github.event.inputs.files_changed }}" ]; then
+              # turn comma-separated into JSON array
+              IFS=',' read -r -a arr <<< "${{ github.event.inputs.files_changed }}"
+              printf -v tmp '%s\n' "${arr[@]}"
+              FILES_SUMMARY=$(printf '%s\n' "$tmp" | jq -R -s -c 'split("\n")[:-1]')
+            fi
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            # try to fetch changed files via API (may require token)
+            PR_NUMBER="${PRNUM}"
+            REPO="${GITHUB_REPOSITORY}"
+            FILES_JSON=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}/files" | jq -r '.[].filename' 2>/dev/null || echo "")
+            if [ -n "$FILES_JSON" ]; then
+              FILES_SUMMARY=$(printf '%s\n' "$FILES_JSON" | jq -R -s -c 'split("\n")[:-1]')
+            fi
+          fi
+
+          # message: prefer workflow_dispatch input > PR title > commit message
+          MESSAGE=""
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.message }}" ]; then
+            MESSAGE="${{ github.event.inputs.message }}"
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            TITLE=$(jq -r .pull_request.title < $GITHUB_EVENT_PATH)
+            MESSAGE="PR merged: ${TITLE}"
+          else
+            # commit message
+            MESSAGE=$(git log -1 --pretty=%B ${COMMIT} | head -n 1)
+          fi
+
+          # Prepare the markdown entry (single-line message, files as JSON array)
+          ENTRY="- ${TS} — user: ${ACTOR} — trigger: ${TRIGGER} — branch: ${BRANCH} — commit: ${COMMIT} — PR: ${PRNUM:-N/A}  \n  changed_files: ${FILES_SUMMARY:-[] }  \n  message: ${MESSAGE}"
+
+          # Save
+          echo "entry<<EOF" >> $GITHUB_OUTPUT
+          echo "${ENTRY}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Append to audit file
+        run: |
+          ENTRY="${{ steps.build.outputs.entry }}"
+          FILE="${AUDIT_FILE}"
+          # Ensure directory exists
+          mkdir -p "$(dirname "$FILE")"
+          # If file doesn't exist, create with header
+          if [ ! -f "$FILE" ]; then
+            cat > "$FILE" <<'HEADER'
+# Audit Log
+
+This file contains an append-only history of repository and operational activities.
+Entries are added automatically by the GitHub Actions workflow `.github/workflows/audit-log.yml`.
+Format:
+- Timestamp (UTC)
+- Actor (GitHub login)
+- Trigger (push / merge / manual)
+- Branch
+- Commit SHA
+- PR number (if applicable)
+- Changed files summary
+- Message / Note
+
+---
+HEADER
+          fi
+
+          # Append entry
+          # Use a temporary file to avoid race conditions
+          printf "%s\n\n" "$ENTRY" >> "$FILE"
+          git config user.name "${COMMIT_NAME}"
+          git config user.email "${COMMIT_EMAIL}"
+          git add "$FILE"
+          git commit -m "chore(audit): append audit entry [ci skip]" || echo "No changes to commit"
+
+      - name: Push audit commit
+        if: success()
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.PRIMARY_BRANCH }}

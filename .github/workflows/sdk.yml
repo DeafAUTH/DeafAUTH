@@ -1,0 +1,79 @@
+name: Build and Publish SDKs
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  generate-sdks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [python, node, typescript, javascript]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        if: matrix.language == 'node' || matrix.language == 'typescript' || matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install OpenAPI Generator
+        run: |
+          npm install @openapitools/openapi-generator-cli -g
+
+      - name: Generate SDK
+        run: |
+          case "${{ matrix.language }}" in
+            python)
+              openapi-generator-cli generate \
+                -i openapi.yaml \
+                -g python \
+                -o sdks/python
+              ;;
+            node)
+              openapi-generator-cli generate \
+                -i openapi.yaml \
+                -g nodejs-express-server \
+                -o sdks/node
+              ;;
+            typescript)
+              openapi-generator-cli generate \
+                -i openapi.yaml \
+                -g typescript-fetch \
+                -o sdks/typescript
+              ;;
+            javascript)
+              openapi-generator-cli generate \
+                -i openapi.yaml \
+                -g javascript \
+                -o sdks/javascript
+              ;;
+          esac
+
+      - name: Publish Python SDK
+        if: matrix.language == 'python'
+        run: |
+          pip install build twine
+          cd sdks/python
+          python -m build
+          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+
+      - name: Publish Node/TS/JS SDKs
+        if: matrix.language != 'python'
+        run: |
+          cd sdks/${{ matrix.language }}
+          npm version ${{ github.ref_name }}
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

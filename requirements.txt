@@ -19,7 +19,7 @@ tensorflow-io==0.37.1
 psycopg2-binary==2.9.9
 
 # Security
-cryptography==44.0.1
+cryptography==46.0.5
 python-jose==3.4.0
 certifi==2024.7.4
 

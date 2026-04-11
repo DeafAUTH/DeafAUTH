@@ -24,7 +24,7 @@ python-jose==3.4.0
 certifi==2024.7.4
 
 # API Integration
-requests==2.32.4
+requests==2.33.0
 aiohttp==3.13.3
 websockets==11.0.3
 

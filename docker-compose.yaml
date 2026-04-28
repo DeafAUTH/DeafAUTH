@@ -1,25 +1,19 @@
-version: '3.8'
 services:
   deafauth:
-    build:
-      context: ./deafauth
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    image: denoland/deno:2.2.6
+    command: run --allow-net --allow-env --allow-read identity/service.ts
     environment:
-      - PORT=3000
-      - BASE_URL=${BASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - SESSION_SECRET=${SESSION_SECRET}
-      - CLIENTS=${CLIENTS}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-      - SCOPES=${SCOPES}
-    expose:
-      - "3000"
-    restart: unless-stopped
-    networks:
-      - webnet
-
-networks:
-  webnet:
-    # Use default settings
+      - PORT=8443
+      - TLS_CERT=/certs/fullchain.pem
+      - TLS_KEY=/certs/privkey.pem
+    ports:
+      - "8443:8443"
+  pinksync:
+    image: denoland/deno:2.2.6
+    command: run --allow-net --allow-env pinksync/gateway.ts
+    environment:
+      - PORT=8080
+      - TLS_CERT=/certs/fullchain.pem
+      - TLS_KEY=/certs/privkey.pem
+    ports:
+      - "8080:8080"

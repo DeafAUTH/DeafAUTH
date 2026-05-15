@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeafAuth - Agnostic Authentication</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 DeafAuth</h1>
+            <p class="subtitle">Agnostic Authentication API using PASETO Tokens</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="home">Home</button>
+            <button class="tab" data-tab="signup">Sign Up</button>
+            <button class="tab" data-tab="login">Login</button>
+            <button class="tab" data-tab="profile">Profile</button>
+        </nav>
+
+        <!-- Home Tab -->
+        <section id="home" class="tab-content active">
+            <div class="card">
+                <h2>Welcome to DeafAuth</h2>
+                <p>A lightweight, modular Flask-based authentication system using PASETO tokens.</p>
+                
+                <h3>Features</h3>
+                <ul>
+                    <li>✅ User Signup with email verification</li>
+                    <li>✅ Secure password hashing</li>
+                    <li>✅ PASETO token authentication</li>
+                    <li>✅ Protected routes</li>
+                    <li>✅ SQLite database (easily adaptable)</li>
+                    <li>✅ CORS enabled for any frontend</li>
+                </ul>
+
+                <h3>API Endpoints</h3>
+                <div class="endpoints">
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <code>/auth/health</code>
+                        <span>Health check</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method post">POST</span>
+                        <code>/auth/signup</code>
+                        <span>Register new user</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method post">POST</span>
+                        <code>/auth/login</code>
+                        <span>Authenticate user</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <code>/auth/verify/&lt;token&gt;</code>
+                        <span>Verify email</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <code>/auth/me</code>
+                        <span>Get current user (protected)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signup Tab -->
+        <section id="signup" class="tab-content">
+            <div class="card">
+                <h2>Create Account</h2>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required placeholder="Minimum 8 characters">
+                    </div>
+                    <button type="submit" class="btn primary">Sign Up</button>
+                </form>
+                <div id="signup-result" class="result"></div>
+            </div>
+        </section>
+
+        <!-- Login Tab -->
+        <section id="login" class="tab-content">
+            <div class="card">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="Your password">
+                    </div>
+                    <button type="submit" class="btn primary">Login</button>
+                </form>
+                <div id="login-result" class="result"></div>
+            </div>
+        </section>
+
+        <!-- Profile Tab -->
+        <section id="profile" class="tab-content">
+            <div class="card">
+                <h2>Your Profile</h2>
+                <div id="profile-content">
+                    <p class="muted">Login to view your profile</p>
+                </div>
+                <button id="logout-btn" class="btn secondary" style="display:none;">Logout</button>
+            </div>
+        </section>
+
+        <footer>
+            <p>DeafAuth v0.1 | <a href="https://paseto.io" target="_blank">Learn about PASETO</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

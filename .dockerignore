@@ -1,8 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+*.egg
+venv/
+.venv/
+ENV/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+tests/
+
+# Database
+*.db
+*.sqlite3
+
+# Environment
+.env
+.env.*
+
+# Docs
+docs/
+*.md
+
+# Misc
+.DS_Store
+*.log
 Dockerfile
 .dockerignore
-node_modules
-.next
-npm-debug.log
-README.md
-.git
-.gitignore

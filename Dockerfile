@@ -1,46 +1,34 @@
-# Stage 1: Build the application
-FROM node:20-alpine AS builder
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-COPY package.json ./
-RUN npm install
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_ENV=production
 
-# Copy source code
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY . .
 
-# Build the Next.js app
-RUN npm run build
+# Create non-root user for security
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
-# Stage 2: Production image
-FROM node:20-alpine AS runner
+# Expose port
+EXPOSE 8000
 
-WORKDIR /app
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/auth/health || exit 1
 
-# Set production environment
-ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
-
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the standalone output from the builder stage.
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Set the user to the non-root user
-USER nextjs
-
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Set the port environment variable
-ENV PORT 3000
-
-# Start the app
-CMD ["node", "server.js"]
+# Run with Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:create_app()"]
